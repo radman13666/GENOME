@@ -21,6 +21,7 @@ package genome.metronome.utils;
 import genome.metronome.model.MetronomeSettings;
 import genome.metronome.model.MetronomeType;
 import genome.metronome.model.SoundSettings;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -49,17 +50,19 @@ public final class MetronomeContract {
     void writeMetronomeSetting(MetronomeType metType, String settingsKey, 
                                                       Number setting);
     void writeMetronomeType(MetronomeType metType);
-    void writeMetronomePreset(String presetName, MetronomeSettings preset);
+    void writeMetronomePreset(MetronomeType metType, String presetName,
+                                                     MetronomeSettings preset);
     void writeSoundSetting(String soundKey, String soundSetting);
-    void writeSoundSettings(String accentSound, String beatFile, 
-                                                String clickFile, 
+    void writeSoundSettings(String accentSound, String beatSound, 
+                                                String clickSound, 
                                                 String tempoChangeSound);
-    void addMetronomePreset(String presetName, MetronomeSettings preset);
+    void addMetronomePreset(MetronomeType metType, String presetName, 
+                                                   MetronomeSettings preset);
     void removeMetronomePreset(MetronomeType metType, String presetName);
     void removeMetronomePresets(MetronomeType metType, String[] presetNames);
     void setDefaults();
-    void writeCurrentSessionToFile();
-    void readPreviousSessionFromFile();
+    void writeCurrentSessionToFile() throws IOException;
+    void readPreviousSessionFromFile() throws IOException;
   }
   
   public interface View {

@@ -36,6 +36,7 @@ public final class Session {
   private LinkedHashMap<String, GapMetronomeSettings> gapMetronomePresets;
   private LinkedHashMap<String, TimedMetronomeSettings> timedMetronomePresets;
   private LinkedHashMap<String, SpeedMetronomeSettings> speedMetronomePresets;
+  private MetronomeType metronomeType;
   private static Session instance = null;
 
   private Session() {
@@ -134,5 +135,12 @@ public final class Session {
           SpeedMetronomeSettings> speedMetronomePresets) {
     this.speedMetronomePresets = speedMetronomePresets;
   }
-  
+
+  public MetronomeType getMetronomeType() {
+    return metronomeType;
+  }
+
+  public void setMetronomeType(MetronomeType metronomeType) {
+    this.metronomeType = metronomeType;
+  }
 }

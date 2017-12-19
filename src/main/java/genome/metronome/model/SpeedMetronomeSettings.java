@@ -26,12 +26,12 @@ public final class SpeedMetronomeSettings
         extends VariableTempoMetronomeSettings {
   
   private int tempoLength;
-  private int tempoIncrement;
+  private float tempoIncrement;
 
   public SpeedMetronomeSettings() {
   }
 
-  public SpeedMetronomeSettings(int tempoLength, int tempoIncrement,
+  public SpeedMetronomeSettings(int tempoLength, float tempoIncrement,
                                 float startTempo, float endTempo, int measure,
                                 int subDivision) {
     super(startTempo, endTempo, measure, subDivision);
@@ -47,11 +47,11 @@ public final class SpeedMetronomeSettings
     this.tempoLength = tempoLength;
   }
 
-  public int getTempoIncrement() {
+  public float getTempoIncrement() {
     return tempoIncrement;
   }
 
-  public void setTempoIncrement(int tempoIncrement) {
+  public void setTempoIncrement(float tempoIncrement) {
     this.tempoIncrement = tempoIncrement;
   }
   

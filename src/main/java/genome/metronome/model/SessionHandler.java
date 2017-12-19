@@ -150,7 +150,7 @@ public final class SessionHandler implements MetronomeContract.Model {
   }
 
   @Override
-  public void writeMetronomePreset(String presetName, 
+  public void writeMetronomePreset(MetronomeType metType, String presetName, 
                                    MetronomeSettings preset) {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
@@ -167,7 +167,8 @@ public final class SessionHandler implements MetronomeContract.Model {
   }
 
   @Override
-  public void addMetronomePreset(String presetName, MetronomeSettings preset) {
+  public void addMetronomePreset(MetronomeType metType, 
+                                 String presetName, MetronomeSettings preset) {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 

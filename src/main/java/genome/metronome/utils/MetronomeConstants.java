@@ -152,6 +152,7 @@ public final class MetronomeConstants {
   public final class MetronomeSettingsKeys {
     
     public static final String TEMPO = "tempo";
+    public static final String SUB_DIVISION = "subDivision";
     public static final String MEASURE = "measure";
     public static final String START_TEMPO = "startTempo";
     public static final String END_TEMPO = "endTempo";

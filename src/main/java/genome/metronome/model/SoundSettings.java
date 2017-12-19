@@ -31,10 +31,10 @@ public final class SoundSettings {
 
   public SoundSettings(String accentSound, String beatSound, String clickSound,
                        String tempoChangeSound) {
-    this.accentSound = accentSound;
-    this.beatSound = beatSound;
-    this.clickSound = clickSound;
-    this.tempoChangeSound = tempoChangeSound;
+    setAccentSound(accentSound);
+    setBeatSound(beatSound);
+    setClickSound(clickSound);
+    setTempoChangeSound(tempoChangeSound);
   }
 
   public String getAccentSound() {
