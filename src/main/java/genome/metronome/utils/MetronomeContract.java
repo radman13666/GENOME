@@ -35,8 +35,7 @@ public final class MetronomeContract {
   }
   
   public interface Model {
-    HashMap<String, ? extends Number> 
-        readMetronomeSettings(MetronomeType metType);
+    HashMap<String, Number> readMetronomeSettings(MetronomeType metType);
     Number readMetronomeSetting(MetronomeType metType, String settingsKey);
     MetronomeType readMetronomeType();
     LinkedHashMap<String, ? extends MetronomeSettings> 
@@ -50,7 +49,7 @@ public final class MetronomeContract {
     void writeMetronomeSetting(MetronomeType metType, String settingsKey, 
                                                       Number setting);
     void writeMetronomeType(MetronomeType metType);
-    void writeMetronomePreset(MetronomeType metType, String presetName,
+    void updateMetronomePreset(MetronomeType metType, String presetName,
                                                      MetronomeSettings preset);
     void writeSoundSetting(String soundKey, String soundSetting);
     void writeSoundSettings(String accentSound, String beatSound, 
