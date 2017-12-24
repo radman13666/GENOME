@@ -30,6 +30,11 @@ public final class MetronomeConstants {
   public static final AudioFormat.Encoding ENCODING = AudioFormat
             .Encoding.PCM_SIGNED;
   public static final AudioFileFormat.Type TYPE = AudioFileFormat.Type.WAVE;
+  public static final AudioFormat DEFAULT_AUDIO_FORMAT 
+    = new AudioFormat(ENCODING, SoundRez.SAMPLE_RATE, SoundRez.SAMPLE_SIZE, 
+      SoundRez.NUM_CHANNELS, SoundRez.FRAME_SIZE, SoundRez.FRAME_RATE, 
+      SoundRez.BIG_ENDIAN);
+  public static final double FLOAT_ERROR_BOUND = 1E-7;
 
   private MetronomeConstants() {
   }
