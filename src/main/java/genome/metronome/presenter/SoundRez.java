@@ -131,9 +131,12 @@ public final class SoundRez {
   public void getResources() throws LineUnavailableException {
     setLine(AudioSystem.getSourceDataLine(MetronomeConstants
       .DEFAULT_AUDIO_FORMAT));
+    if (!getLine().isOpen()) 
+      getLine().open(MetronomeConstants.DEFAULT_AUDIO_FORMAT);
   }
   
   public void releaseResources() {
+    if (getLine().isOpen()) getLine().close();
     setLine(null);
   }
 
