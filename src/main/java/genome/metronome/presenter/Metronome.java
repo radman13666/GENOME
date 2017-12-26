@@ -19,6 +19,11 @@
 package genome.metronome.presenter;
 
 import genome.metronome.utils.MetronomeConstants;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.HashMap;
 
 /**
@@ -30,6 +35,7 @@ public abstract class Metronome {
   protected int measure;
   protected int subDivision;
   protected SoundRez soundRez;
+  protected Thread writingThread;
 
   protected Metronome() {
   }
@@ -70,9 +76,97 @@ public abstract class Metronome {
   public final void setSoundRez(SoundRez soundRez) {
     this.soundRez = soundRez;
   }
+
+  protected final Thread getWritingThread() {
+    return writingThread;
+  }
+
+  protected final void setWritingThread(Thread writingThread) {
+    this.writingThread = writingThread;
+  }
   
   public abstract void play();
   public abstract void stop();
   public abstract void bulkSet(HashMap<String, Number> settings);
   public abstract HashMap<String, Number> getSettings();
+  
+  protected class WriteAudioTask implements Runnable {
+    //this is the server for writing audio data to the audio output devices.
+    
+    ServerSocket serverSocket;
+    Socket clientSocket;
+    InputStream in;
+    byte[] buffer;
+
+    protected WriteAudioTask() {
+    }
+
+    @Override
+    public void run() {
+      try {
+        //1. open the clientSocket for the server and listen for incoming 
+        //   audio data.
+        serverSocket 
+          = new ServerSocket(MetronomeConstants.Metronome.SERVER_PORT);
+        clientSocket = serverSocket.accept();
+        in = clientSocket.getInputStream();
+        
+        //2. when the data is received, it is written to the audio devices
+        //   throught a buffered audio output stream.
+        buffer = new byte[MetronomeConstants.Metronome.BUFFER_SIZE];
+        int numBytesRead;
+        
+        getSoundRez().getLine().start();
+        while (!Thread.interrupted()) {
+          numBytesRead = in.read(buffer);
+          getSoundRez().getLine().write(buffer, 0, numBytesRead);
+        }
+        getSoundRez().getLine().stop();
+        getSoundRez().getLine().flush();
+      } catch (IOException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          serverSocket.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+  
+  protected abstract class CreateAudioTask implements Runnable {
+    //this is the client that generates and sends audio data to the server.
+    
+    private Socket socket;
+    private BufferedOutputStream out;
+    protected int counter;
+    byte[] buffer;
+
+    protected CreateAudioTask() {
+    }
+    
+    @Override
+    public void run() {
+      try {
+        //1. Connect to the server and get an output stream.
+        socket = new Socket(MetronomeConstants.Metronome.HOST, 
+          MetronomeConstants.Metronome.SERVER_PORT);
+        out = new BufferedOutputStream(socket.getOutputStream());
+        buffer = new byte[MetronomeConstants.Metronome.BUFFER_SIZE];
+        counter = 0;
+        
+        //2. continuously create data and write it to the stream until
+        //   the thread is interrupted.
+        while (!Thread.interrupted()) {
+          create(buffer);
+          out.write(buffer, 0, buffer.length);
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+
+    public abstract void create(byte[] buffer);
+  }
 }

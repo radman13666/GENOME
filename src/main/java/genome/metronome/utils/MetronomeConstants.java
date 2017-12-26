@@ -48,6 +48,9 @@ public final class MetronomeConstants {
     public static final int MAX_SUB_DIVISION = 12;
     public static final int MIN_SUB_DIVISION = 2;
     public static final int NO_SUB_DIVISION = 0;
+    public static final String HOST = "localhost";
+    public static final int SERVER_PORT = 6699;
+    public static final int BUFFER_SIZE = 1024;
 
     private Metronome() {
     }
