@@ -18,6 +18,7 @@
  */
 package genome.metronome.presenter;
 
+import genome.metronome.utils.MetronomeConstants;
 import java.util.HashMap;
 
 /**
@@ -25,12 +26,21 @@ import java.util.HashMap;
  * @author William Kibirango <williamkaos.kibirango76@gmail.com>
  */
 public final class RegularMetronome extends ConstantTempoMetronome {
+  private Thread creatingThread;
 
   public RegularMetronome() {
   }
 
   public RegularMetronome(float tempo, int measure, int subDivision) {
     super(tempo, measure, subDivision);
+  }
+
+  private Thread getCreatingThread() {
+    return creatingThread;
+  }
+
+  private void setCreatingThread(Thread creatingThread) {
+    this.creatingThread = creatingThread;
   }
 
   @Override
@@ -40,22 +50,49 @@ public final class RegularMetronome extends ConstantTempoMetronome {
 
   @Override
   public void play() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    setWritingThread(new Thread(new WriteAudioTask()));
+    setCreatingThread(new Thread(new CreateRegularClickTrackTask()));
+    getWritingThread().start();
+    getCreatingThread().start();
   }
 
   @Override
   public void stop() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    getCreatingThread().interrupt();
+    getWritingThread().interrupt();
+    setCreatingThread(null);
+    setWritingThread(null);
   }
 
   @Override
   public void bulkSet(HashMap<String, Number> settings) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    setTempo((Float) settings.get(MetronomeConstants.MetronomeSettingsKeys
+      .TEMPO));
+    setMeasure((Integer) settings.get(MetronomeConstants.MetronomeSettingsKeys
+      .MEASURE));
+    setSubDivision((Integer) settings.get(MetronomeConstants
+      .MetronomeSettingsKeys.SUB_DIVISION));
   }
 
   @Override
   public HashMap<String, Number> getSettings() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    HashMap<String, Number> settings = new HashMap<>();
+    settings.put(MetronomeConstants.MetronomeSettingsKeys
+      .TEMPO, getTempo());
+    settings.put(MetronomeConstants.MetronomeSettingsKeys
+      .MEASURE, getMeasure());
+    settings.put(MetronomeConstants.MetronomeSettingsKeys
+      .SUB_DIVISION, getSubDivision());
+    return settings;
   }
   
+  protected class CreateRegularClickTrackTask extends CreateAudioTask {
+    protected CreateRegularClickTrackTask() {
+    }
+
+    @Override
+    public void create(byte[] buffer) {
+      throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+  }
 }
