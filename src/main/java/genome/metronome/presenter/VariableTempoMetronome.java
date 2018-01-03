@@ -65,5 +65,4 @@ public abstract class VariableTempoMetronome extends Metronome {
             .DEFAULT_END_TEMPO;
   }
   
-  protected abstract byte[] createSilenceForTempo(float newTempo);
 }

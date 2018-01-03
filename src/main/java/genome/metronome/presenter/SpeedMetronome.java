@@ -65,10 +65,6 @@ public final class SpeedMetronome extends VariableTempoMetronome {
             .DEFAULT_TEMPO_INCREMENT;
   }
 
-  @Override
-  protected byte[] createSilenceForTempo(float newTempo) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
 
   @Override
   public void play() {

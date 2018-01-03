@@ -61,10 +61,6 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     this.creatingThread = creatingThread;
   }
 
-  @Override
-  protected byte[] createSilence(float tempo) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
 
   @Override
   public void play() {

@@ -98,10 +98,6 @@ public final class GapMetronome extends ConstantTempoMetronome {
             .DEFAULT_GAP_REPETITIONS;
   }
 
-  @Override
-  protected byte[] createSilence(float tempo) {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
 
   @Override
   public void play() {

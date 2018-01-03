@@ -47,5 +47,4 @@ public abstract class ConstantTempoMetronome extends Metronome {
     else this.tempo = MetronomeConstants.ConstantTempoMetronome.DEFAULT_TEMPO;
   }
   
-  protected abstract byte[] createSilence(float tempo);
 }
