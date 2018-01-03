@@ -50,11 +50,18 @@ public abstract class Metronome {
   }
 
   public final void setMeasure(int measure) {
-    if (measure == MetronomeConstants.Metronome.NO_MEASURE
-        | (measure >= MetronomeConstants.Metronome.MIN_MEASURE 
-           & measure <= MetronomeConstants.Metronome.MAX_MEASURE))
-      this.measure = measure;
-    else this.measure = MetronomeConstants.Metronome.COMMON_TIME;
+    if (this instanceof GapMetronome || this instanceof SpeedMetronome) {
+      if (measure >= MetronomeConstants.Metronome.MIN_MEASURE 
+           && measure <= MetronomeConstants.Metronome.MAX_MEASURE)
+        this.measure = measure;
+      else this.measure = MetronomeConstants.Metronome.COMMON_TIME;
+    } else {
+      if (measure == MetronomeConstants.Metronome.NO_MEASURE
+          || (measure >= MetronomeConstants.Metronome.MIN_MEASURE 
+             && measure <= MetronomeConstants.Metronome.MAX_MEASURE))
+        this.measure = measure;
+      else this.measure = MetronomeConstants.Metronome.COMMON_TIME;
+    }
   }
 
   public final int getSubDivision() {
@@ -171,6 +178,19 @@ public abstract class Metronome {
 
     //periodic unit-impulse active from 0 to b
     protected int h(BigInteger t, BigInteger b, long n, long T) {
+      return h(t, BigInteger.ZERO, b, n, T);
+    }
+    
+    //periodic unit-impulse function --- Overloaded
+    protected int h(BigInteger t, BigInteger a, BigInteger b, long n, 
+                                                              BigInteger T) {
+      // t - (n * T)
+      BigInteger tEff = t.subtract(T.multiply(BigInteger.valueOf(n))); 
+      return h(tEff, a, b);
+    }
+
+    //periodic unit-impulse active from 0 to b --- Overloaded
+    protected int h(BigInteger t, BigInteger b, long n, BigInteger T) {
       return h(t, BigInteger.ZERO, b, n, T);
     }
     
