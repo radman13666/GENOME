@@ -19,9 +19,9 @@
 package genome.metronome.presenter;
 
 import genome.metronome.utils.MetronomeConstants;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -93,10 +93,10 @@ public abstract class Metronome {
   protected class WriteAudioTask implements Runnable {
     //this is the server for writing audio data to the audio output devices.
     
-    ServerSocket serverSocket;
-    Socket clientSocket;
-    InputStream in;
-    byte[] buffer;
+    private ServerSocket serverSocket;
+    private Socket clientSocket;
+    private InputStream in;
+    private byte[] buffer;
 
     protected WriteAudioTask() {
     }
@@ -119,6 +119,7 @@ public abstract class Metronome {
         getSoundRez().getLine().start();
         while (!Thread.interrupted()) {
           numBytesRead = in.read(buffer);
+          if (numBytesRead == -1) break;
           getSoundRez().getLine().write(buffer, 0, numBytesRead);
         }
         getSoundRez().getLine().stop();
@@ -137,36 +138,77 @@ public abstract class Metronome {
   
   protected abstract class CreateAudioTask implements Runnable {
     //this is the client that generates and sends audio data to the server.
+    private int a = 0, b = 0, c = 0, d = 0;
     
-    private Socket socket;
-    private BufferedOutputStream out;
-    protected int counter;
-    byte[] buffer;
-
     protected CreateAudioTask() {
     }
     
-    @Override
-    public void run() {
-      try {
-        //1. Connect to the server and get an output stream.
-        socket = new Socket(MetronomeConstants.Metronome.HOST, 
-          MetronomeConstants.Metronome.SERVER_PORT);
-        out = new BufferedOutputStream(socket.getOutputStream());
-        buffer = new byte[MetronomeConstants.Metronome.BUFFER_SIZE];
-        counter = 0;
-        
-        //2. continuously create data and write it to the stream until
-        //   the thread is interrupted.
-        while (!Thread.interrupted()) {
-          create(buffer);
-          out.write(buffer, 0, buffer.length);
-        }
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+    //the unit-step function
+    protected int u(BigInteger t, BigInteger a) {
+      if (t.compareTo(a) == -1) // t < a 
+        return 0;
+      else return 1;
     }
 
-    public abstract void create(byte[] buffer);
+    //the unit-impulse function
+    protected int h(BigInteger t, BigInteger a, BigInteger b) {
+      if (a.compareTo(b) == -1) // a < b 
+        return u(t, a) - u(t, b);
+      else return 0;
+    }
+
+    //periodic unit-step function
+    protected int g(BigInteger t, BigInteger a, long n, long T) {
+      BigInteger tEff = t.subtract(BigInteger.valueOf(n * T)); // t - (n * T)
+      return u(tEff, a);
+    }
+
+    //periodic unit-impulse function
+    protected int h(BigInteger t, BigInteger a, BigInteger b, long n, long T) {
+      BigInteger tEff = t.subtract(BigInteger.valueOf(n * T)); // t - (n * T)
+      return h(tEff, a, b);
+    }
+
+    //periodic unit-impulse active from 0 to b
+    protected int h(BigInteger t, BigInteger b, long n, long T) {
+      return h(t, BigInteger.ZERO, b, n, T);
+    }
+    
+    //function to generate actual sound bytes
+    protected byte soundGenerator(byte value) {
+      byte result;
+      switch (value) {
+        case 0:
+          a = 0; b = 0; c = 0; d = 0;
+          result = 0;
+          break;
+        case MetronomeConstants.Metronome.AudioTasks.CLICK:
+          result = getSoundRez().getClickSound()[a];
+          a++;
+          break;
+        case MetronomeConstants.Metronome.AudioTasks.BEAT:
+          result = getSoundRez().getBeatSound()[c];
+          c++;
+          break;
+        case MetronomeConstants.Metronome.AudioTasks.ACCENT:
+          result = getSoundRez().getAccentSound()[b];
+          b++;
+          break;
+        case MetronomeConstants.Metronome.AudioTasks.TEMPO_CHANGE:
+          result = getSoundRez().getTempoChangeSound()[d];
+          d++;
+          break;
+        default:
+          result = 0;
+          break;
+      }
+      return result;
+    }
+    
+    //sound function generator for this task
+    protected abstract byte functionGenerator(BigInteger t, long aN, long bN, 
+                                                                     long aT);
+
+    protected abstract int create(byte[] buffer);
   }
 }

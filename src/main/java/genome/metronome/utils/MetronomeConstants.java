@@ -50,11 +50,22 @@ public final class MetronomeConstants {
     public static final int NO_SUB_DIVISION = 0;
     public static final String HOST = "localhost";
     public static final int SERVER_PORT = 6699;
-    public static final int BUFFER_SIZE = 1024;
+    public static final int BUFFER_SIZE = 1024 * 500; // 500 KiB
 
     private Metronome() {
     }
     
+    public final class AudioTasks {
+      public static final byte TEMPO_CHANGE = 4;
+      public static final byte ACCENT = 3;
+      public static final byte BEAT = 2;
+      public static final byte CLICK = 1;
+      public static final float DUTY_CYCLE = 0.5F; //of the period
+
+      private AudioTasks() {
+      }
+      
+    }
   }
   
   public final class ConstantTempoMetronome {
