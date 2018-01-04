@@ -36,6 +36,7 @@ public abstract class Metronome {
   protected int subDivision;
   protected SoundRez soundRez;
   protected Thread writingThread;
+  protected Thread creatingThread;
 
   protected Metronome() {
   }
@@ -91,9 +92,27 @@ public abstract class Metronome {
   protected final void setWritingThread(Thread writingThread) {
     this.writingThread = writingThread;
   }
+
+  protected final Thread getCreatingThread() {
+    return creatingThread;
+  }
+
+  protected final void setCreatingThread(Thread creatingThread) {
+    this.creatingThread = creatingThread;
+  }
   
-  public abstract void play();
-  public abstract void stop();
+  public void play() {
+    setWritingThread(new Thread(new WriteAudioTask()));
+    getWritingThread().start();
+  }
+  
+  public final void stop() {
+    getCreatingThread().interrupt();
+    getWritingThread().interrupt();
+    setCreatingThread(null);
+    setWritingThread(null);
+  }
+  
   public abstract void bulkSet(HashMap<String, Number> settings);
   public abstract HashMap<String, Number> getSettings();
   
@@ -224,10 +243,6 @@ public abstract class Metronome {
       }
       return result;
     }
-    
-    //sound function generator for this task
-    protected abstract byte functionGenerator(BigInteger t, long aN, long bN, 
-                                                                     long aT);
 
     protected abstract int create(byte[] buffer);
   }

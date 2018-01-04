@@ -32,12 +32,12 @@ import java.util.HashMap;
 public final class TimedMetronome extends ConstantTempoMetronome {
   
   private int duration;
-  private Thread creatingThread;
 
   public TimedMetronome() {
   }
 
-  public TimedMetronome(int duration, float tempo, int measure, int subDivision) {
+  public TimedMetronome(int duration, float tempo, int measure, 
+                                                   int subDivision) {
     super(tempo, measure, subDivision);
     setDuration(duration);
   }
@@ -53,33 +53,15 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     else this.duration = MetronomeConstants.TimedMetronome.DEFAULT_DURATION;
   }
 
-  public Thread getCreatingThread() {
-    return creatingThread;
-  }
-
-  public void setCreatingThread(Thread creatingThread) {
-    this.creatingThread = creatingThread;
-  }
-
-
   @Override
   public void play() {
-    setWritingThread(new Thread(new WriteAudioTask()));
+    super.play();
     setCreatingThread(
       new Thread(
         new CreateTimedClickTrackTask(getTempo(), getMeasure(), getDuration())
       )
     );
-    getWritingThread().start();
     getCreatingThread().start();
-  }
-
-  @Override
-  public void stop() {
-    getCreatingThread().interrupt();
-    getWritingThread().interrupt();
-    setCreatingThread(null);
-    setWritingThread(null);
   }
 
   @Override
@@ -113,44 +95,47 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     private Socket socket;
     private BufferedOutputStream out;
     private byte[] buffer;
-    private BigInteger t = BigInteger.ZERO;
-    private long dutyCycle;
+    private long periodDutyCycleInBytes;
     private final boolean accentOn;
-    private final long period;
-    private final long accentPeriod;
+    private final long periodInBytes;
+    private final long measureInBytes;
     private long beatIterations = 0L, accentIterations = 0L;
+    private BigInteger t = BigInteger.ZERO;
     BigInteger durationInBytes;
 
     public CreateTimedClickTrackTask(float tempo, int measure, int duration) {
-      float tPeriod = 60 / tempo;
-      long periodInBytes 
-        = (long) Math.round(MetronomeConstants.SoundRez.FRAME_RATE * 
-                            tPeriod * MetronomeConstants.SoundRez.FRAME_SIZE);
-      //integral number of sample frames
-      period = periodInBytes - 
-                    (periodInBytes % MetronomeConstants.SoundRez.FRAME_SIZE);
+      long period = (long) Math.round(
+        (60 / tempo) *
+        MetronomeConstants.SoundRez.FRAME_RATE * 
+        MetronomeConstants.SoundRez.FRAME_SIZE
+      );
       
-      long dutyCycleInBytes 
-        = (long) Math.round(period * 
-                            MetronomeConstants.Metronome.AudioTasks.DUTY_CYCLE);
-      //integral number of sample frames
-      dutyCycle = dutyCycleInBytes - 
-                       (dutyCycleInBytes % 
-                        MetronomeConstants.SoundRez.FRAME_SIZE);
-      if (dutyCycle > getSoundRez().getAccentSound().length || 
-          dutyCycle > getSoundRez().getBeatSound().length) 
-        dutyCycle = getSoundRez().getAccentSound().length <= 
+      periodInBytes = period - 
+                      (period % MetronomeConstants.SoundRez.FRAME_SIZE);
+      
+      long dutyCycle = (long) Math.round(
+        periodInBytes * 
+        MetronomeConstants.Metronome.AudioTasks.DUTY_CYCLE
+      );
+      
+      periodDutyCycleInBytes 
+        = dutyCycle - (dutyCycle % MetronomeConstants.SoundRez.FRAME_SIZE);
+      
+      if (periodDutyCycleInBytes > getSoundRez().getAccentSound().length || 
+          periodDutyCycleInBytes > getSoundRez().getBeatSound().length) 
+        periodDutyCycleInBytes = getSoundRez().getAccentSound().length <= 
                          getSoundRez().getBeatSound().length ? 
                          getSoundRez().getAccentSound().length : 
                          getSoundRez().getBeatSound().length;
       
-      long totalDuration = (long) Math.ceil(period * tempo * duration);
-      //integral number of sample frames
+      long totalDuration = (long) Math.ceil(periodInBytes * tempo * duration);
+      
       durationInBytes = BigInteger.valueOf(
         totalDuration - 
         (totalDuration % MetronomeConstants.SoundRez.FRAME_SIZE)
       );
-      accentPeriod = period * measure;
+      
+      measureInBytes = periodInBytes * measure;
       
       if (measure > 1) accentOn = true;
       else if (measure == MetronomeConstants.Metronome.NO_MEASURE) 
@@ -181,7 +166,7 @@ public final class TimedMetronome extends ConstantTempoMetronome {
 
     @Override
     protected int create(byte[] buffer) {
-      long n = beatIterations, aN = accentIterations, aT = accentPeriod;
+      long n = beatIterations, aN = accentIterations, aT = measureInBytes;
       int c = 0;
       
       // c < buffer.length
@@ -193,7 +178,7 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         if (t.compareTo(durationInBytes) == 0) { //t == duration
           return c;
         }
-        if (t.remainder(BigInteger.valueOf(period)).intValue() == 0) n++;
+        if (t.remainder(BigInteger.valueOf(periodInBytes)).intValue() == 0) n++;
         if (accentOn && t.remainder(BigInteger.valueOf(aT)).intValue() == 0) 
           aN++;
       }
@@ -202,18 +187,20 @@ public final class TimedMetronome extends ConstantTempoMetronome {
       return c;
     }
     
-    @Override
-    protected byte functionGenerator(BigInteger t, long aN, long bN, long aT) {
+    //sound function generator for this task
+    private byte functionGenerator(BigInteger t, long aN, long bN, long aT) {
       int value;
       if (accentOn)
         value = (MetronomeConstants.Metronome.AudioTasks.ACCENT * 
-                 h(t, BigInteger.valueOf(dutyCycle), aN, aT)) +
+                 h(t, BigInteger.valueOf(periodDutyCycleInBytes), aN, aT)) +
                 (MetronomeConstants.Metronome.AudioTasks.BEAT * 
-                 h(t, BigInteger.valueOf(dutyCycle), bN, period) * 
-                 g(t, BigInteger.valueOf(period), aN, aT));
+                 h(t, BigInteger.valueOf(periodDutyCycleInBytes), 
+                      bN, periodInBytes) * 
+                 g(t, BigInteger.valueOf(periodInBytes), aN, aT));
       else
         value = MetronomeConstants.Metronome.AudioTasks.BEAT * 
-                h(t, BigInteger.valueOf(dutyCycle), bN, period);
+                h(t, BigInteger.valueOf(periodDutyCycleInBytes), 
+                     bN, periodInBytes);
 
       return (byte) value;
     }

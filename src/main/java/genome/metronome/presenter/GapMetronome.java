@@ -35,7 +35,6 @@ public final class GapMetronome extends ConstantTempoMetronome {
   private int silentMeasures;
   private int gapLengthIncrement;
   private int gapRepetitions;
-  private Thread creatingThread;
 
   public GapMetronome() {
   }
@@ -103,17 +102,9 @@ public final class GapMetronome extends ConstantTempoMetronome {
             .DEFAULT_GAP_REPETITIONS;
   }
 
-  public Thread getCreatingThread() {
-    return creatingThread;
-  }
-
-  public void setCreatingThread(Thread creatingThread) {
-    this.creatingThread = creatingThread;
-  }
-
   @Override
   public void play() {
-    setWritingThread(new Thread(new WriteAudioTask()));
+    super.play();
     setCreatingThread(
       new Thread(new CreateGapClickTrackTask(
         getTempo(),
@@ -123,16 +114,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
         getGapLengthIncrement()
       ))
     );
-    getWritingThread().start();
     getCreatingThread().start();
-  }
-
-  @Override
-  public void stop() {
-    getCreatingThread().interrupt();
-    getWritingThread().interrupt();
-    setCreatingThread(null);
-    setWritingThread(null);
   }
 
   @Override
@@ -287,8 +269,9 @@ public final class GapMetronome extends ConstantTempoMetronome {
       return c;
     }
 
-    protected byte functionGenerator(BigInteger t, long aN, long bN, long gN, 
-                                                                     long aT) {
+    //sound function generator for this task
+    private byte functionGenerator(BigInteger t, long aN, long bN, long gN, 
+                                                                   long aT) {
       int value;
       value = ((MetronomeConstants.Metronome.AudioTasks.ACCENT * 
                h(t, BigInteger.valueOf(periodDutyCycleInBytes), aN, aT)) +
@@ -299,11 +282,6 @@ public final class GapMetronome extends ConstantTempoMetronome {
               h(t, BigInteger.valueOf(gapGraphDutyCycleInBytes), 
                    gN, gapGraphPeriodInBytes);
       return (byte) value;
-    }
-
-    @Override
-    protected byte functionGenerator(BigInteger t, long aN, long bN, long aT) {
-      throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
   }
 }

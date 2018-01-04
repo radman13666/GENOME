@@ -69,15 +69,11 @@ public final class SpeedMetronome extends VariableTempoMetronome {
             .DEFAULT_TEMPO_INCREMENT;
   }
 
-
   @Override
   public void play() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
-
-  @Override
-  public void stop() {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    super.play();
+    setCreatingThread(new Thread(new CreateSpeedClickTrackTask()));
+    getCreatingThread().start();
   }
 
   @Override
@@ -187,14 +183,10 @@ public final class SpeedMetronome extends VariableTempoMetronome {
       tempoChangeIterations = cN;
       return c;
     }
-
-    @Override
-    protected byte functionGenerator(BigInteger t, long aN, long bN, long aT) {
-      throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
     
+    //sound function generator for this task
     private byte functionGenerator(BigInteger t, long aN, long bN, long cN, 
-                                                                    long aT) {
+                                                                   long aT) {
       int value;
       value = ((MetronomeConstants.Metronome.AudioTasks.ACCENT * 
                h(t, BigInteger.valueOf(periodDutyCycleInBytes), aN, aT)) +
