@@ -71,8 +71,8 @@ public abstract class Metronome {
 
   public final void setSubDivision(int subDivision) {
     if (subDivision == MetronomeConstants.Metronome.NO_SUB_DIVISION 
-        | (subDivision >= MetronomeConstants.Metronome.MIN_SUB_DIVISION 
-           & subDivision <= MetronomeConstants.Metronome.MAX_SUB_DIVISION))
+        || (subDivision >= MetronomeConstants.Metronome.MIN_SUB_DIVISION 
+           && subDivision <= MetronomeConstants.Metronome.MAX_SUB_DIVISION))
       this.subDivision = subDivision;
     else this.subDivision = MetronomeConstants.Metronome.NO_SUB_DIVISION;
   }
@@ -132,14 +132,14 @@ public abstract class Metronome {
       try {
         //1. open the clientSocket for the server and listen for incoming 
         //   audio data.
-        serverSocket 
-          = new ServerSocket(MetronomeConstants.Metronome.SERVER_PORT);
+        serverSocket = new ServerSocket(
+          MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
         clientSocket = serverSocket.accept();
         in = clientSocket.getInputStream();
         
         //2. when the data is received, it is written to the audio devices
         //   throught a buffered audio output stream.
-        buffer = new byte[MetronomeConstants.Metronome.BUFFER_SIZE];
+        buffer = new byte[MetronomeConstants.Metronome.AudioTasks.BUFFER_SIZE];
         int numBytesRead;
         
         getSoundRez().getLine().start();

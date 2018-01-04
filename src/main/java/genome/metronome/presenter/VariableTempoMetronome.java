@@ -45,7 +45,7 @@ public abstract class VariableTempoMetronome extends Metronome {
 
   public final void setStartTempo(float startTempo) {
     if (startTempo >= MetronomeConstants.VariableTempoMetronome.MIN_START_TEMPO 
-        & startTempo <= MetronomeConstants.VariableTempoMetronome
+        && startTempo <= MetronomeConstants.VariableTempoMetronome
           .MAX_START_TEMPO)
       this.startTempo = startTempo;
     else this.startTempo = MetronomeConstants.VariableTempoMetronome
@@ -58,7 +58,7 @@ public abstract class VariableTempoMetronome extends Metronome {
 
   public final void setEndTempo(float endTempo) {
     if (endTempo >= MetronomeConstants.VariableTempoMetronome.MIN_END_TEMPO 
-        & endTempo <= MetronomeConstants.VariableTempoMetronome
+        && endTempo <= MetronomeConstants.VariableTempoMetronome
           .MAX_END_TEMPO)
       this.endTempo = endTempo;
     else this.endTempo = MetronomeConstants.VariableTempoMetronome

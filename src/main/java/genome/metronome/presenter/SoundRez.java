@@ -21,7 +21,6 @@ package genome.metronome.presenter;
 import genome.metronome.utils.MetronomeConstants;
 import java.io.File;
 import java.io.IOException;
-import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -75,7 +74,7 @@ public final class SoundRez {
   public boolean prepareSounds(String accentFile, String beatFile, 
                                                   String clickFile, 
                                                   String tempoChangeFile) 
-    throws IOException, UnsupportedAudioFileException{
+    throws IOException, UnsupportedAudioFileException {
     return prepareSound(SoundType.ACCENT, accentFile) &&
            prepareSound(SoundType.BEAT, beatFile) &&
            prepareSound(SoundType.CLICK, clickFile) && 
@@ -84,29 +83,27 @@ public final class SoundRez {
   
   public boolean isValid(String soundFile) 
     throws IOException, UnsupportedAudioFileException {
-    File file = new File(soundFile);
     try (AudioInputStream ais 
-      = AudioSystem.getAudioInputStream(file)) {
+      = AudioSystem.getAudioInputStream(new File(soundFile))) {
       AudioFormat af = ais.getFormat();
-      AudioFileFormat aff = AudioSystem.getAudioFileFormat(file);
       
-      float bitRate = af.getSampleRate() * af.getSampleSizeInBits()
-                * af.getChannels();
-      float duration = (ais.getFrameLength() * af.getFrameSize() * 8)
-                / bitRate;
+      float bitRate 
+        = af.getSampleRate() * af.getSampleSizeInBits() * af.getChannels();
+      long numBits = ais.getFrameLength() * af.getFrameSize() * 8;
+      float duration = numBits / bitRate;
       
       return af.getChannels() == MetronomeConstants.SoundRez.NUM_CHANNELS &&
              !af.isBigEndian() && 
-             af.getFrameSize() == MetronomeConstants.SoundRez.FRAME_SIZE &&
              af.getEncoding() == MetronomeConstants.ENCODING &&
-             aff.getType() == MetronomeConstants.TYPE &&
-             Math.abs(af.getFrameRate() - 
+             af.getFrameSize() == MetronomeConstants.SoundRez.FRAME_SIZE &&
+             af.getSampleSizeInBits() == MetronomeConstants.SoundRez.SAMPLE_SIZE 
+             && Math.abs(af.getFrameRate() - 
                       MetronomeConstants.SoundRez.FRAME_RATE) < 
              MetronomeConstants.FLOAT_ERROR_BOUND &&
-             Math.abs(bitRate - MetronomeConstants.SoundRez.BIT_RATE) < 
+             Math.abs(af.getSampleRate() - 
+                      MetronomeConstants.SoundRez.SAMPLE_RATE) < 
              MetronomeConstants.FLOAT_ERROR_BOUND &&
-             Math.abs(duration - MetronomeConstants.SoundRez.DURATION) < 
-             MetronomeConstants.FLOAT_ERROR_BOUND;
+             duration < MetronomeConstants.SoundRez.DURATION;
     }
   }
   
@@ -114,9 +111,9 @@ public final class SoundRez {
     throws IOException, UnsupportedAudioFileException {
     try (AudioInputStream ais 
       = AudioSystem.getAudioInputStream(new File(soundFile))) {
-      int frameSize = ais.getFormat().getFrameSize(), 
-        numBytesRead, totalBytesRead = 0, 
-        bufferSize = (int) Math.ceil(frameSize * ais.getFrameLength());
+      int numBytesRead, totalBytesRead = 0, 
+        bufferSize 
+        = (int) (ais.getFormat().getFrameSize() * ais.getFrameLength());
       byte[] data = new byte[bufferSize];
       
       while ((numBytesRead = ais.read(data)) != -1) {
@@ -129,8 +126,9 @@ public final class SoundRez {
   }
   
   public void getResources() throws LineUnavailableException {
-    setLine(AudioSystem.getSourceDataLine(MetronomeConstants
-      .DEFAULT_AUDIO_FORMAT));
+    setLine(
+      AudioSystem.getSourceDataLine(MetronomeConstants.DEFAULT_AUDIO_FORMAT)
+    );
     if (!getLine().isOpen()) 
       getLine().open(MetronomeConstants.DEFAULT_AUDIO_FORMAT);
   }

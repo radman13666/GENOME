@@ -118,10 +118,10 @@ public final class RegularMetronome extends ConstantTempoMetronome {
     public void run() {
       try {
         //1. Connect to the server and get an output stream.
-        socket = new Socket(MetronomeConstants.Metronome.HOST, 
-          MetronomeConstants.Metronome.SERVER_PORT);
+        socket = new Socket(MetronomeConstants.Metronome.AudioTasks.HOST, 
+          MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
         out = new BufferedOutputStream(socket.getOutputStream());
-        buffer = new byte[MetronomeConstants.Metronome.BUFFER_SIZE];
+        buffer = new byte[MetronomeConstants.Metronome.AudioTasks.BUFFER_SIZE];
         int numBytesCreated;
         //2. continuously create data and write it to the stream until
         //   the thread is interrupted.
@@ -155,21 +155,17 @@ public final class RegularMetronome extends ConstantTempoMetronome {
     
     //sound function generator for this task
     private byte functionGenerator(BigInteger t, long aN, long bN, long aT) {
-      int value;
       if (accentOn)
-        value = (MetronomeConstants.Metronome.AudioTasks.ACCENT * 
+        return (byte) ((MetronomeConstants.Metronome.AudioTasks.ACCENT * 
                  h(t, BigInteger.valueOf(periodDutyCycleInBytes), aN, aT)) +
                 (MetronomeConstants.Metronome.AudioTasks.BEAT * 
                  h(t, BigInteger.valueOf(periodDutyCycleInBytes), 
                       bN, periodInBytes) * 
-                 g(t, BigInteger.valueOf(periodInBytes), aN, aT));
+                 g(t, BigInteger.valueOf(periodInBytes), aN, aT)));
       else
-        value = MetronomeConstants.Metronome.AudioTasks.BEAT * 
-                h(t, BigInteger.valueOf(periodDutyCycleInBytes), 
-                     bN, periodInBytes);
-
-      return (byte) value;
+        return (byte) (MetronomeConstants.Metronome.AudioTasks.BEAT * 
+                       h(t, BigInteger.valueOf(periodDutyCycleInBytes), 
+                            bN, periodInBytes));
     }
-    
   }
 }

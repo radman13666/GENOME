@@ -42,7 +42,7 @@ public abstract class ConstantTempoMetronome extends Metronome {
 
   public final void setTempo(float tempo) {
     if (tempo >= MetronomeConstants.ConstantTempoMetronome.MIN_TEMPO 
-        & tempo <= MetronomeConstants.ConstantTempoMetronome.MAX_TEMPO)
+        && tempo <= MetronomeConstants.ConstantTempoMetronome.MAX_TEMPO)
       this.tempo = tempo;
     else this.tempo = MetronomeConstants.ConstantTempoMetronome.DEFAULT_TEMPO;
   }

@@ -50,7 +50,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
 
   public void setTempoLength(int tempoLength) {
     if (tempoLength >= MetronomeConstants.SpeedMetronome.MIN_TEMPO_LENGTH 
-        & tempoLength >= MetronomeConstants.SpeedMetronome.MAX_TEMPO_LENGTH)
+        && tempoLength >= MetronomeConstants.SpeedMetronome.MAX_TEMPO_LENGTH)
       this.tempoLength = tempoLength;
     else this.tempoLength = MetronomeConstants.SpeedMetronome
             .DEFAULT_TEMPO_LENGTH;
@@ -62,7 +62,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
 
   public void setTempoIncrement(float tempoIncrement) {
     if (tempoIncrement >= MetronomeConstants.SpeedMetronome.MIN_TEMPO_INCREMENT 
-        & tempoIncrement <= MetronomeConstants.SpeedMetronome
+        && tempoIncrement <= MetronomeConstants.SpeedMetronome
           .MAX_TEMPO_INCREMENT)
       this.tempoIncrement = tempoIncrement;
     else this.tempoIncrement = MetronomeConstants.SpeedMetronome
@@ -140,10 +140,10 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     public void run() {
       try {
         //1. Connect to the server and get an output stream.
-        socket = new Socket(MetronomeConstants.Metronome.HOST, 
-          MetronomeConstants.Metronome.SERVER_PORT);
+        socket = new Socket(MetronomeConstants.Metronome.AudioTasks.HOST, 
+          MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
         out = new BufferedOutputStream(socket.getOutputStream());
-        buffer = new byte[MetronomeConstants.Metronome.BUFFER_SIZE];
+        buffer = new byte[MetronomeConstants.Metronome.AudioTasks.BUFFER_SIZE];
         int numBytesCreated;
 
         //2. continuously create data and write it to the stream until
@@ -187,8 +187,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     //sound function generator for this task
     private byte functionGenerator(BigInteger t, long aN, long bN, long cN, 
                                                                    long aT) {
-      int value;
-      value = ((MetronomeConstants.Metronome.AudioTasks.ACCENT * 
+      return (byte) (((MetronomeConstants.Metronome.AudioTasks.ACCENT * 
                h(t, BigInteger.valueOf(periodDutyCycleInBytes), aN, aT)) +
               (MetronomeConstants.Metronome.AudioTasks.BEAT * 
                h(t, BigInteger.valueOf(periodDutyCycleInBytes), 
@@ -197,8 +196,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
               g(t, BigInteger.valueOf(periodInBytes), 
                    cN, tempoChangePeriodInBytes) + 
               h(t, BigInteger.valueOf(periodDutyCycleInBytes), 
-                   cN, tempoChangePeriodInBytes);
-      return (byte) value;
+                   cN, tempoChangePeriodInBytes));
     }
     
     private void doTempoChange() {
