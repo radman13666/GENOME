@@ -156,14 +156,14 @@ public final class RegularMetronome extends ConstantTempoMetronome {
     //sound function generator for this task
     private byte functionGenerator(BigInteger t, long aN, long bN, long aT) {
       if (accentOn)
-        return (byte) ((MetronomeConstants.Metronome.AudioTasks.ACCENT * 
+        return (byte) ((MetronomeConstants.Metronome.AudioTasks.ACCENT_MARKER * 
                  h(t, BigInteger.valueOf(periodDutyCycleInBytes), aN, aT)) +
-                (MetronomeConstants.Metronome.AudioTasks.BEAT * 
+                (MetronomeConstants.Metronome.AudioTasks.BEAT_MARKER * 
                  h(t, BigInteger.valueOf(periodDutyCycleInBytes), 
                       bN, periodInBytes) * 
                  g(t, BigInteger.valueOf(periodInBytes), aN, aT)));
       else
-        return (byte) (MetronomeConstants.Metronome.AudioTasks.BEAT * 
+        return (byte) (MetronomeConstants.Metronome.AudioTasks.BEAT_MARKER * 
                        h(t, BigInteger.valueOf(periodDutyCycleInBytes), 
                             bN, periodInBytes));
     }

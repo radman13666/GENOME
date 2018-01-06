@@ -221,19 +221,19 @@ public abstract class Metronome {
           a = 0; b = 0; c = 0; d = 0;
           result = 0;
           break;
-        case MetronomeConstants.Metronome.AudioTasks.CLICK:
+        case MetronomeConstants.Metronome.AudioTasks.CLICK_MARKER:
           result = getSoundRez().getClickSound()[a];
           a++;
           break;
-        case MetronomeConstants.Metronome.AudioTasks.BEAT:
+        case MetronomeConstants.Metronome.AudioTasks.BEAT_MARKER:
           result = getSoundRez().getBeatSound()[c];
           c++;
           break;
-        case MetronomeConstants.Metronome.AudioTasks.ACCENT:
+        case MetronomeConstants.Metronome.AudioTasks.ACCENT_MARKER:
           result = getSoundRez().getAccentSound()[b];
           b++;
           break;
-        case MetronomeConstants.Metronome.AudioTasks.TEMPO_CHANGE:
+        case MetronomeConstants.Metronome.AudioTasks.TEMPO_CHANGE_MARKER:
           result = getSoundRez().getTempoChangeSound()[d];
           d++;
           break;

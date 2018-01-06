@@ -272,9 +272,9 @@ public final class GapMetronome extends ConstantTempoMetronome {
     //sound function generator for this task
     private byte functionGenerator(BigInteger t, long aN, long bN, long gN, 
                                                                    long aT) {
-      return (byte) (((MetronomeConstants.Metronome.AudioTasks.ACCENT * 
+      return (byte) (((MetronomeConstants.Metronome.AudioTasks.ACCENT_MARKER * 
                h(t, BigInteger.valueOf(periodDutyCycleInBytes), aN, aT)) +
-              (MetronomeConstants.Metronome.AudioTasks.BEAT * 
+              (MetronomeConstants.Metronome.AudioTasks.BEAT_MARKER * 
                h(t, BigInteger.valueOf(periodDutyCycleInBytes), 
                     bN, periodInBytes) * 
                g(t, BigInteger.valueOf(periodInBytes), aN, aT))) * 

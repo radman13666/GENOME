@@ -28,27 +28,26 @@ import genome.metronome.presenter.SoundRez;
  */
 public final class MetronomeDependencyInjector {
   
-  private static MetronomeHandler metronomeHandler = null;
+  private static MetronomeContract.Presenter metronomePresenter = null;
 
   private MetronomeDependencyInjector() {
   }
   
-  public static SessionHandler getSessionHandler() {
+  public static MetronomeContract.Model getMetronomeModel() {
     return SessionHandler.getInstance();
   }
   
-  public static MetronomeHandler 
-        getMetronomeHandler(MetronomeContract.View view, 
-                            MetronomeContract.Model model) {
+  public static MetronomeContract.Presenter 
+    getMetronomePresenter(MetronomeContract.View view, 
+                        MetronomeContract.Model model) {
     if (view != null & model != null) {
-      if (metronomeHandler == null)
-        metronomeHandler = new MetronomeHandler(view, model);
-      return metronomeHandler;
+      if (metronomePresenter == null)
+        metronomePresenter = new MetronomeHandler(view, model);
+      return metronomePresenter;
     } else return null;
   }
   
   public static SoundRez getSoundRez() {
     return SoundRez.getInstance();
   }
-  
 }

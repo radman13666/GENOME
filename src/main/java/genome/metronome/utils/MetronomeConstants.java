@@ -18,7 +18,6 @@
  */
 package genome.metronome.utils;
 
-import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioFormat;
 
 /**
@@ -29,7 +28,6 @@ public final class MetronomeConstants {
   
   public static final AudioFormat.Encoding ENCODING 
     = AudioFormat.Encoding.PCM_SIGNED;
-  public static final AudioFileFormat.Type TYPE = AudioFileFormat.Type.WAVE;
   public static final AudioFormat DEFAULT_AUDIO_FORMAT 
     = new AudioFormat(ENCODING, SoundRez.SAMPLE_RATE, SoundRez.SAMPLE_SIZE, 
         SoundRez.NUM_CHANNELS, SoundRez.FRAME_SIZE, SoundRez.FRAME_RATE, 
@@ -54,10 +52,10 @@ public final class MetronomeConstants {
     }
     
     public final class AudioTasks {
-      public static final byte TEMPO_CHANGE = 4;
-      public static final byte ACCENT = 3;
-      public static final byte BEAT = 2;
-      public static final byte CLICK = 1;
+      public static final byte TEMPO_CHANGE_MARKER = 4;
+      public static final byte ACCENT_MARKER = 3;
+      public static final byte BEAT_MARKER = 2;
+      public static final byte CLICK_MARKER = 1;
       public static final float DUTY_CYCLE = 0.5F; //of the period
       public static final String HOST = "localhost";
       public static final int SERVER_PORT = 6699;
@@ -161,7 +159,6 @@ public final class MetronomeConstants {
     public static final int SAMPLE_SIZE = 16; //bits
     public static final int FRAME_SIZE = 4; //bytes
     public static final int NUM_CHANNELS = 2;
-    public static final float BIT_RATE = 1_411.2F; //bits per second
     public static final float DURATION = 0.250F; //seconds
     public static final boolean BIG_ENDIAN = false;
 //    public static final AudioFormat.Encoding ENCODING = AudioFormat
