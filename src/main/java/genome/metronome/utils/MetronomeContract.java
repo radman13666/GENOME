@@ -81,7 +81,7 @@ public final class MetronomeContract {
     void stopMetronome();
     void initialize();
     void clean();
-    void reset();
+    void reset(MetronomeType currentType, MetronomeType targetType);
     void updateMetronomeSettings(MetronomeType metType, 
                                  HashMap<String, Number> settings);
     void updateMetronomeSetting(MetronomeType metType, String settingKey, 
