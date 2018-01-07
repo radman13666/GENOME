@@ -35,8 +35,8 @@ public abstract class Metronome {
   protected int measure;
   protected int subDivision;
   protected SoundRez soundRez;
-  protected Thread writingThread;
-  protected Thread creatingThread;
+  protected WriteAudioTask writingTask;
+  protected CreateAudioTask creatingTask;
 
   protected Metronome() {
   }
@@ -52,14 +52,14 @@ public abstract class Metronome {
 
   public final void setMeasure(int measure) {
     if (this instanceof GapMetronome || this instanceof SpeedMetronome) {
-      if (measure >= MetronomeConstants.Metronome.MIN_MEASURE 
-           && measure <= MetronomeConstants.Metronome.MAX_MEASURE)
+      if (measure >= MetronomeConstants.Metronome.MIN_MEASURE && 
+          measure <= MetronomeConstants.Metronome.MAX_MEASURE)
         this.measure = measure;
       else this.measure = MetronomeConstants.Metronome.COMMON_TIME;
     } else {
-      if (measure == MetronomeConstants.Metronome.NO_MEASURE
-          || (measure >= MetronomeConstants.Metronome.MIN_MEASURE 
-             && measure <= MetronomeConstants.Metronome.MAX_MEASURE))
+      if (measure == MetronomeConstants.Metronome.NO_MEASURE || 
+          (measure >= MetronomeConstants.Metronome.MIN_MEASURE && 
+           measure <= MetronomeConstants.Metronome.MAX_MEASURE))
         this.measure = measure;
       else this.measure = MetronomeConstants.Metronome.COMMON_TIME;
     }
@@ -70,9 +70,9 @@ public abstract class Metronome {
   }
 
   public final void setSubDivision(int subDivision) {
-    if (subDivision == MetronomeConstants.Metronome.NO_SUB_DIVISION 
-        || (subDivision >= MetronomeConstants.Metronome.MIN_SUB_DIVISION 
-           && subDivision <= MetronomeConstants.Metronome.MAX_SUB_DIVISION))
+    if (subDivision == MetronomeConstants.Metronome.NO_SUB_DIVISION ||
+        (subDivision >= MetronomeConstants.Metronome.MIN_SUB_DIVISION &&
+         subDivision <= MetronomeConstants.Metronome.MAX_SUB_DIVISION))
       this.subDivision = subDivision;
     else this.subDivision = MetronomeConstants.Metronome.NO_SUB_DIVISION;
   }
@@ -85,32 +85,30 @@ public abstract class Metronome {
     this.soundRez = soundRez;
   }
 
-  protected final Thread getWritingThread() {
-    return writingThread;
+  protected final WriteAudioTask getWritingTask() {
+    return writingTask;
   }
 
-  protected final void setWritingThread(Thread writingThread) {
-    this.writingThread = writingThread;
+  protected final void setWritingTask(WriteAudioTask writingTask) {
+    this.writingTask = writingTask;
   }
 
-  protected final Thread getCreatingThread() {
-    return creatingThread;
+  protected final CreateAudioTask getCreatingTask() {
+    return creatingTask;
   }
 
-  protected final void setCreatingThread(Thread creatingThread) {
-    this.creatingThread = creatingThread;
+  protected final void setCreatingTask(CreateAudioTask creatingTask) {
+    this.creatingTask = creatingTask;
   }
   
   public void play() {
-    setWritingThread(new Thread(new WriteAudioTask()));
-    getWritingThread().start();
+    setWritingTask(new WriteAudioTask());
+    new Thread(getWritingTask()).start();
   }
   
   public final void stop() {
-    getCreatingThread().interrupt();
-    getWritingThread().interrupt();
-    setCreatingThread(null);
-    setWritingThread(null);
+    getCreatingTask().stop();
+    getWritingTask().stop();
   }
   
   public abstract void bulkSet(HashMap<String, Number> settings);
@@ -123,8 +121,14 @@ public abstract class Metronome {
     private Socket clientSocket;
     private InputStream in;
     private byte[] buffer;
+    private volatile boolean isStopped;
 
     protected WriteAudioTask() {
+      this.isStopped = false;
+    }
+    
+    private void stop() {
+      this.isStopped = true;
     }
 
     @Override
@@ -143,9 +147,7 @@ public abstract class Metronome {
         int numBytesRead;
         
         getSoundRez().getLine().start();
-        while (!Thread.interrupted()) {
-          numBytesRead = in.read(buffer);
-          if (numBytesRead == -1) break;
+        while (!(isStopped || (numBytesRead = in.read(buffer)) == -1)) {
           getSoundRez().getLine().write(buffer, 0, numBytesRead);
         }
         getSoundRez().getLine().stop();
@@ -165,8 +167,14 @@ public abstract class Metronome {
   protected abstract class CreateAudioTask implements Runnable {
     //this is the client that generates and sends audio data to the server.
     private int a = 0, b = 0, c = 0, d = 0;
+    protected volatile boolean isStopped;
     
     protected CreateAudioTask() {
+      this.isStopped = false;
+    }
+    
+    protected void stop() {
+      this.isStopped = true;
     }
     
     //the unit-step function
@@ -222,16 +230,16 @@ public abstract class Metronome {
           result = 0;
           break;
         case MetronomeConstants.Metronome.AudioTasks.CLICK_MARKER:
-          result = getSoundRez().getClickSound()[a];
-          a++;
-          break;
-        case MetronomeConstants.Metronome.AudioTasks.BEAT_MARKER:
-          result = getSoundRez().getBeatSound()[c];
+          result = getSoundRez().getClickSound()[c];
           c++;
           break;
-        case MetronomeConstants.Metronome.AudioTasks.ACCENT_MARKER:
-          result = getSoundRez().getAccentSound()[b];
+        case MetronomeConstants.Metronome.AudioTasks.BEAT_MARKER:
+          result = getSoundRez().getBeatSound()[b];
           b++;
+          break;
+        case MetronomeConstants.Metronome.AudioTasks.ACCENT_MARKER:
+          result = getSoundRez().getAccentSound()[a];
+          a++;
           break;
         case MetronomeConstants.Metronome.AudioTasks.TEMPO_CHANGE_MARKER:
           result = getSoundRez().getTempoChangeSound()[d];

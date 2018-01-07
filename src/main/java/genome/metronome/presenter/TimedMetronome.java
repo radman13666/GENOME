@@ -47,8 +47,8 @@ public final class TimedMetronome extends ConstantTempoMetronome {
   }
 
   public void setDuration(int duration) {
-    if (duration >= MetronomeConstants.TimedMetronome.MIN_DURATION 
-        && duration >= MetronomeConstants.TimedMetronome.MAX_DURATION)
+    if (duration >= MetronomeConstants.TimedMetronome.MIN_DURATION && 
+        duration <= MetronomeConstants.TimedMetronome.MAX_DURATION)
       this.duration = duration;
     else this.duration = MetronomeConstants.TimedMetronome.DEFAULT_DURATION;
   }
@@ -56,12 +56,10 @@ public final class TimedMetronome extends ConstantTempoMetronome {
   @Override
   public void play() {
     super.play();
-    setCreatingThread(
-      new Thread(
-        new CreateTimedClickTrackTask(getTempo(), getMeasure(), getDuration())
-      )
+    setCreatingTask(
+      new CreateTimedClickTrackTask(getTempo(), getMeasure(), getDuration())
     );
-    getCreatingThread().start();
+    new Thread(getCreatingTask()).start();
   }
 
   @Override
@@ -90,7 +88,7 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     return settings;
   }
   
-  protected final class CreateTimedClickTrackTask extends CreateAudioTask {
+  private final class CreateTimedClickTrackTask extends CreateAudioTask {
     
     private Socket socket;
     private BufferedOutputStream out;
@@ -154,8 +152,8 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         int numBytesCreated;
 
         //2. continuously create data and write it to the stream until
-        //   the thread is interrupted or when the time elapses.
-        while (!Thread.interrupted() && t.compareTo(durationInBytes) == -1) {
+        //   the thread is stopped or when the time elapses.
+        while (!isStopped && t.compareTo(durationInBytes) == -1) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }

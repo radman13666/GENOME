@@ -54,11 +54,11 @@ public final class GapMetronome extends ConstantTempoMetronome {
   }
 
   public void setLoudMeasures(int loudMeasures) {
-    if (loudMeasures >= MetronomeConstants.GapMetronome.MIN_LOUD_MEASURES 
-        && loudMeasures <= MetronomeConstants.GapMetronome.MAX_LOUD_MEASURES)
+    if (loudMeasures >= MetronomeConstants.GapMetronome.MIN_LOUD_MEASURES && 
+        loudMeasures <= MetronomeConstants.GapMetronome.MAX_LOUD_MEASURES)
       this.loudMeasures = loudMeasures;
-    else this.loudMeasures = MetronomeConstants.GapMetronome
-            .DEFAULT_LOUD_MEASURES;
+    else this.loudMeasures 
+      = MetronomeConstants.GapMetronome.DEFAULT_LOUD_MEASURES;
   }
 
   public int getSilentMeasures() {
@@ -66,11 +66,11 @@ public final class GapMetronome extends ConstantTempoMetronome {
   }
 
   public void setSilentMeasures(int silentMeasures) {
-    if (silentMeasures >= MetronomeConstants.GapMetronome.MIN_SILENT_MEASURES 
-        && silentMeasures <= MetronomeConstants.GapMetronome.MAX_SILENT_MEASURES)
+    if (silentMeasures >= MetronomeConstants.GapMetronome.MIN_SILENT_MEASURES &&
+        silentMeasures <= MetronomeConstants.GapMetronome.MAX_SILENT_MEASURES)
       this.silentMeasures = silentMeasures;
-    else this.silentMeasures = MetronomeConstants.GapMetronome
-            .DEFAULT_SILENT_MEASURES;
+    else this.silentMeasures 
+      = MetronomeConstants.GapMetronome.DEFAULT_SILENT_MEASURES;
   }
 
   public int getGapLengthIncrement() {
@@ -78,13 +78,13 @@ public final class GapMetronome extends ConstantTempoMetronome {
   }
 
   public void setGapLengthIncrement(int gapLengthIncrement) {
-    if (gapLengthIncrement >= MetronomeConstants.GapMetronome
-        .MIN_GAP_LENGTH_INCREMENT 
-        && gapLengthIncrement <= MetronomeConstants.GapMetronome
-          .MAX_GAP_LENGTH_INCREMENT)
+    if (gapLengthIncrement >= 
+         MetronomeConstants.GapMetronome.MIN_GAP_LENGTH_INCREMENT && 
+         gapLengthIncrement <= 
+         MetronomeConstants.GapMetronome.MAX_GAP_LENGTH_INCREMENT)
       this.gapLengthIncrement = gapLengthIncrement;
-    else this.gapLengthIncrement = MetronomeConstants.GapMetronome
-            .DEFAULT_GAP_LENGTH_INCREMENT;
+    else this.gapLengthIncrement 
+      = MetronomeConstants.GapMetronome.DEFAULT_GAP_LENGTH_INCREMENT;
   }
 
   public int getGapRepetitions() {
@@ -92,29 +92,29 @@ public final class GapMetronome extends ConstantTempoMetronome {
   }
 
   public void setGapRepetitions(int gapRepetitions) {
-    if (gapRepetitions == MetronomeConstants.GapMetronome
-        .INFINITE_GAP_REPETITIONS || 
-        (gapRepetitions >= MetronomeConstants.GapMetronome.MIN_GAP_REPETITIONS 
-        && gapRepetitions <= MetronomeConstants.GapMetronome
-          .MAX_GAP_REPETITIONS))
+    if (gapRepetitions == 
+        MetronomeConstants.GapMetronome.INFINITE_GAP_REPETITIONS || 
+        (gapRepetitions >= 
+         MetronomeConstants.GapMetronome.MIN_GAP_REPETITIONS &&
+         gapRepetitions <= MetronomeConstants.GapMetronome.MAX_GAP_REPETITIONS))
       this.gapRepetitions = gapRepetitions;
-    else this.gapRepetitions = MetronomeConstants.GapMetronome
-            .DEFAULT_GAP_REPETITIONS;
+    else this.gapRepetitions 
+      = MetronomeConstants.GapMetronome.DEFAULT_GAP_REPETITIONS;
   }
 
   @Override
   public void play() {
     super.play();
-    setCreatingThread(
-      new Thread(new CreateGapClickTrackTask(
+    setCreatingTask(
+      new CreateGapClickTrackTask(
         getTempo(),
         getMeasure(),
         getLoudMeasures(),
         getSilentMeasures(),
         getGapLengthIncrement()
-      ))
+      )
     );
-    getCreatingThread().start();
+    new Thread(getCreatingTask()).start();
   }
 
   @Override
@@ -155,7 +155,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
     return settings;
   }
   
-  protected final class CreateGapClickTrackTask extends CreateAudioTask {
+  private final class CreateGapClickTrackTask extends CreateAudioTask {
     
     private Socket socket;
     private BufferedOutputStream out;
@@ -206,13 +206,9 @@ public final class GapMetronome extends ConstantTempoMetronome {
       silentMeasuresInBytes = measureInBytes * silentMeasures;
       gapLengthIncrementInBytes = measureInBytes * gapLengthIncrement;
       
-      BigInteger gapGraphPeriod = BigInteger.valueOf(
+      gapGraphPeriodInBytes = BigInteger.valueOf(
         loudMeasuresInBytes + silentMeasuresInBytes
       );
-      
-      gapGraphPeriodInBytes // p - (p % FRAME_SIZE)
-        = gapGraphPeriod.subtract(gapGraphPeriod.remainder(BigInteger.valueOf(
-          MetronomeConstants.SoundRez.FRAME_SIZE)));
       
       long gapGraphDutyCycle
         = BigInteger.valueOf(loudMeasuresInBytes)
@@ -235,7 +231,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
         
         //2. continuously create data and write it to the stream until
         //   the thread is interrupted.
-        while (!Thread.interrupted()) {
+        while (!isStopped) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
@@ -258,7 +254,9 @@ public final class GapMetronome extends ConstantTempoMetronome {
         if (t.remainder(BigInteger.valueOf(periodInBytes)).intValue() == 0) n++;
         if (t.remainder(BigInteger.valueOf(aT)).intValue() == 0) aN++;
         if (t.remainder(gapGraphPeriodInBytes).intValue() == 0) gN++;
-        if ((gN % getGapRepetitions()) == 0) 
+        if (getGapRepetitions() != 
+            MetronomeConstants.GapMetronome.INFINITE_GAP_REPETITIONS && 
+            (gN % getGapRepetitions()) == 0) 
           gapGraphPeriodInBytes = gapGraphPeriodInBytes.add(
             BigInteger.valueOf(gapLengthIncrementInBytes)
           );

@@ -44,12 +44,12 @@ public abstract class VariableTempoMetronome extends Metronome {
   }
 
   public final void setStartTempo(float startTempo) {
-    if (startTempo >= MetronomeConstants.VariableTempoMetronome.MIN_START_TEMPO 
-        && startTempo <= MetronomeConstants.VariableTempoMetronome
-          .MAX_START_TEMPO)
+    if (startTempo >= 
+        MetronomeConstants.VariableTempoMetronome.MIN_START_TEMPO && 
+        startTempo <= MetronomeConstants.VariableTempoMetronome.MAX_START_TEMPO)
       this.startTempo = startTempo;
-    else this.startTempo = MetronomeConstants.VariableTempoMetronome
-            .DEFAULT_START_TEMPO;
+    else this.startTempo 
+      = MetronomeConstants.VariableTempoMetronome.DEFAULT_START_TEMPO;
   }
 
   public final float getEndTempo() {
@@ -57,12 +57,11 @@ public abstract class VariableTempoMetronome extends Metronome {
   }
 
   public final void setEndTempo(float endTempo) {
-    if (endTempo >= MetronomeConstants.VariableTempoMetronome.MIN_END_TEMPO 
-        && endTempo <= MetronomeConstants.VariableTempoMetronome
-          .MAX_END_TEMPO)
+    if (endTempo >= MetronomeConstants.VariableTempoMetronome.MIN_END_TEMPO && 
+        endTempo <= MetronomeConstants.VariableTempoMetronome.MAX_END_TEMPO)
       this.endTempo = endTempo;
-    else this.endTempo = MetronomeConstants.VariableTempoMetronome
-            .DEFAULT_END_TEMPO;
+    else this.endTempo 
+      = MetronomeConstants.VariableTempoMetronome.DEFAULT_END_TEMPO;
   }
   
 }

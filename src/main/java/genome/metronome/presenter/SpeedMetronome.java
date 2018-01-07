@@ -49,11 +49,11 @@ public final class SpeedMetronome extends VariableTempoMetronome {
   }
 
   public void setTempoLength(int tempoLength) {
-    if (tempoLength >= MetronomeConstants.SpeedMetronome.MIN_TEMPO_LENGTH 
-        && tempoLength >= MetronomeConstants.SpeedMetronome.MAX_TEMPO_LENGTH)
+    if (tempoLength >= MetronomeConstants.SpeedMetronome.MIN_TEMPO_LENGTH && 
+        tempoLength <= MetronomeConstants.SpeedMetronome.MAX_TEMPO_LENGTH)
       this.tempoLength = tempoLength;
-    else this.tempoLength = MetronomeConstants.SpeedMetronome
-            .DEFAULT_TEMPO_LENGTH;
+    else this.tempoLength 
+      = MetronomeConstants.SpeedMetronome.DEFAULT_TEMPO_LENGTH;
   }
 
   public float getTempoIncrement() {
@@ -61,19 +61,25 @@ public final class SpeedMetronome extends VariableTempoMetronome {
   }
 
   public void setTempoIncrement(float tempoIncrement) {
-    if (tempoIncrement >= MetronomeConstants.SpeedMetronome.MIN_TEMPO_INCREMENT 
-        && tempoIncrement <= MetronomeConstants.SpeedMetronome
-          .MAX_TEMPO_INCREMENT)
+    if (tempoIncrement >= 
+        MetronomeConstants.SpeedMetronome.MIN_TEMPO_INCREMENT && 
+        tempoIncrement <= MetronomeConstants.SpeedMetronome.MAX_TEMPO_INCREMENT)
       this.tempoIncrement = tempoIncrement;
-    else this.tempoIncrement = MetronomeConstants.SpeedMetronome
-            .DEFAULT_TEMPO_INCREMENT;
+    else this.tempoIncrement 
+      = MetronomeConstants.SpeedMetronome.DEFAULT_TEMPO_INCREMENT;
   }
 
   @Override
   public void play() {
     super.play();
-    setCreatingThread(new Thread(new CreateSpeedClickTrackTask()));
-    getCreatingThread().start();
+    if (getStartTempo() >= getEndTempo()) {
+      setStartTempo(MetronomeConstants
+        .VariableTempoMetronome.DEFAULT_START_TEMPO);
+      setEndTempo(MetronomeConstants
+        .VariableTempoMetronome.DEFAULT_END_TEMPO);
+    }
+    setCreatingTask(new CreateSpeedClickTrackTask());
+    new Thread(getCreatingTask()).start();
   }
 
   @Override
@@ -110,7 +116,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     return settings;
   }
   
-  protected final class CreateSpeedClickTrackTask extends CreateAudioTask {
+  private final class CreateSpeedClickTrackTask extends CreateAudioTask {
     
     private Socket socket;
     private BufferedOutputStream out;
@@ -147,8 +153,8 @@ public final class SpeedMetronome extends VariableTempoMetronome {
         int numBytesCreated;
 
         //2. continuously create data and write it to the stream until
-        //   the thread is interrupted or when the actual end tempo is reached.
-        while (!Thread.interrupted() && accentIterations < numMeasures) {
+        //   the thread is stopped or when the actual end tempo is reached.
+        while (!isStopped && accentIterations < numMeasures) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }

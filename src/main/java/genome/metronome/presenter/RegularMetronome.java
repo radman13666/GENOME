@@ -41,10 +41,10 @@ public final class RegularMetronome extends ConstantTempoMetronome {
   @Override
   public void play() {
     super.play();
-    setCreatingThread(
-      new Thread(new CreateRegularClickTrackTask(getTempo(), getMeasure()))
+    setCreatingTask(
+      new CreateRegularClickTrackTask(getTempo(), getMeasure())
     );
-    getCreatingThread().start();
+    new Thread(getCreatingTask()).start();
   }
 
   @Override
@@ -69,7 +69,7 @@ public final class RegularMetronome extends ConstantTempoMetronome {
     return settings;
   }
   
-  protected final class CreateRegularClickTrackTask extends CreateAudioTask {
+  private final class CreateRegularClickTrackTask extends CreateAudioTask {
     
     private Socket socket;
     private BufferedOutputStream out;
@@ -123,9 +123,10 @@ public final class RegularMetronome extends ConstantTempoMetronome {
         out = new BufferedOutputStream(socket.getOutputStream());
         buffer = new byte[MetronomeConstants.Metronome.AudioTasks.BUFFER_SIZE];
         int numBytesCreated;
+        
         //2. continuously create data and write it to the stream until
-        //   the thread is interrupted.
-        while (!Thread.interrupted()) {
+        //   the thread is stopped.
+        while (!isStopped) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
