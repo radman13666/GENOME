@@ -49,10 +49,6 @@ public final class SoundRez {
     return instance;
   }
   
-  public static void destroyInstance() {
-    instance = null;
-  }
-  
   public boolean getSoundFromFile(SoundType type, String soundFile) 
     throws IOException, UnsupportedAudioFileException {
     if (isValid(soundFile)) {
