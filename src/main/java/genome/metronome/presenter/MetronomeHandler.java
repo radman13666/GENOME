@@ -103,22 +103,42 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
 
   @Override
   public void playMetronome() {
-    switch (model.readMetronomeType()) {
+    switch (getModel().readMetronomeType()) {
       case REG:
-        getRegularMetronome().play(); break;
+        getRegularMetronome().play();
+        getModel().writeMetronomeSettings(MetronomeType.REG, 
+                                          getRegularMetronome().getSettings());
+        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+          MetronomeType.REG));
+        break;
       case GAP:
-        getGapMetronome().play(); break;
+        getGapMetronome().play(); 
+        getModel().writeMetronomeSettings(MetronomeType.GAP, 
+                                          getGapMetronome().getSettings());
+        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+          MetronomeType.GAP));
+        break;
       case TIMED:
-        getTimedMetronome().play(); break;
+        getTimedMetronome().play(); 
+        getModel().writeMetronomeSettings(MetronomeType.TIMED, 
+                                          getTimedMetronome().getSettings());
+        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+          MetronomeType.TIMED));
+        break;
       case SPEED:
-        getSpeedMetronome().play(); break;
+        getSpeedMetronome().play(); 
+        getModel().writeMetronomeSettings(MetronomeType.SPEED, 
+                                          getSpeedMetronome().getSettings());
+        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+          MetronomeType.SPEED));
+        break;
       default: break;
     }
   }
 
   @Override
   public void stopMetronome() {
-    switch (model.readMetronomeType()) {
+    switch (getModel().readMetronomeType()) {
       case REG:
         getRegularMetronome().stop(); break;
       case GAP:
@@ -139,120 +159,36 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
       soundRez.getResources();
       
       //2. retrieve previous session
-      model.readPreviousSessionFromFile();
+      getModel().readPreviousSessionFromFile();
       
       //3. acquire sounds
-      soundRez.prepareSounds(
-        model.readSoundSetting(MetronomeConstants.MetronomeSettingsKeys.ACCENT),
-        model.readSoundSetting(MetronomeConstants.MetronomeSettingsKeys.BEAT), 
-        model.readSoundSetting(MetronomeConstants.MetronomeSettingsKeys.CLICK), 
-        model.readSoundSetting(
-          MetronomeConstants.MetronomeSettingsKeys.TEMPO_CHANGE)
-      );
+      if (!(soundRez.getSoundsFromFiles(
+        getSoundSetting(MetronomeConstants.MetronomeSettingsKeys.ACCENT),
+        getSoundSetting(MetronomeConstants.MetronomeSettingsKeys.BEAT), 
+        getSoundSetting(MetronomeConstants.MetronomeSettingsKeys.CLICK), 
+        getSoundSetting(MetronomeConstants.MetronomeSettingsKeys.TEMPO_CHANGE)
+      )))
+        getView().displayMessage("Sound files are unprepared.\n");
       
       //4. create all metronomes and load their previous settings
-      setRegularMetronome(
-        new RegularMetronome(
-          (Float) model.readMetronomeSetting(
-            MetronomeType.REG, 
-            MetronomeConstants.MetronomeSettingsKeys.TEMPO
-          ), 
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.REG, 
-            MetronomeConstants.MetronomeSettingsKeys.MEASURE
-          ), 
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.REG, 
-            MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION
-          )
-        )
-      );
+      setRegularMetronome(new RegularMetronome());
+      getRegularMetronome()
+        .bulkSet(getModel().readMetronomeSettings(MetronomeType.REG));
       
-      setGapMetronome(
-        new GapMetronome(
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.GAP, 
-            MetronomeConstants.MetronomeSettingsKeys.LOUD_MEASURES
-          ),
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.GAP, 
-            MetronomeConstants.MetronomeSettingsKeys.SILENT_MEASURES
-          ),
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.GAP, 
-            MetronomeConstants.MetronomeSettingsKeys.GAP_LENGTH_INCREMENT
-          ),
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.GAP, 
-            MetronomeConstants.MetronomeSettingsKeys.GAP_REPETITIONS
-          ),
-          (Float) model.readMetronomeSetting(
-            MetronomeType.GAP, 
-            MetronomeConstants.MetronomeSettingsKeys.TEMPO
-          ),
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.GAP, 
-            MetronomeConstants.MetronomeSettingsKeys.MEASURE
-          ), 
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.GAP, 
-            MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION
-          )
-        )
-      );
+      setGapMetronome(new GapMetronome());
+      getGapMetronome()
+        .bulkSet(getModel().readMetronomeSettings(MetronomeType.GAP));
       
-      setTimedMetronome(
-        new TimedMetronome(
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.TIMED, 
-            MetronomeConstants.MetronomeSettingsKeys.DURATION
-          ),
-          (Float) model.readMetronomeSetting(
-            MetronomeType.TIMED, 
-            MetronomeConstants.MetronomeSettingsKeys.TEMPO
-          ),
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.TIMED, 
-            MetronomeConstants.MetronomeSettingsKeys.MEASURE
-          ), 
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.TIMED, 
-            MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION
-          )
-        )
-      );
+      setTimedMetronome(new TimedMetronome());
+      getTimedMetronome()
+        .bulkSet(getModel().readMetronomeSettings(MetronomeType.TIMED));
       
-      setSpeedMetronome(
-        new SpeedMetronome(
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.SPEED, 
-            MetronomeConstants.MetronomeSettingsKeys.TEMPO_LENGTH
-          ),
-          (Float) model.readMetronomeSetting(
-            MetronomeType.SPEED, 
-            MetronomeConstants.MetronomeSettingsKeys.TEMPO_INCREMENT
-          ),
-          (Float) model.readMetronomeSetting(
-            MetronomeType.SPEED, 
-            MetronomeConstants.MetronomeSettingsKeys.START_TEMPO
-          ),
-          (Float) model.readMetronomeSetting(
-            MetronomeType.SPEED, 
-            MetronomeConstants.MetronomeSettingsKeys.END_TEMPO
-          ),
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.TIMED, 
-            MetronomeConstants.MetronomeSettingsKeys.MEASURE
-          ), 
-          (Integer) model.readMetronomeSetting(
-            MetronomeType.TIMED, 
-            MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION
-          )
-        )
-      );
+      setSpeedMetronome(new SpeedMetronome());
+      getSpeedMetronome()
+        .bulkSet(getModel().readMetronomeSettings(MetronomeType.SPEED));
       
       //5. query the last used metronome and give it the sound resources
-      switch (model.readMetronomeType()) {
+      switch (getModel().readMetronomeType()) {
         case REG:
           getRegularMetronome().setSoundRez(soundRez); break;
         case GAP:
@@ -265,24 +201,25 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
       }
     } catch (LineUnavailableException e) {
       if (e.getMessage() != null)
-        view.displayMessage(
+        getView().displayMessage(
           "Required system resources are unavailable.\n\n" + 
           e.getMessage()
         );
       else 
-        view.displayMessage("Required system resources are unavailable.\n\n");
+        getView()
+          .displayMessage("Required system resources are unavailable.\n\n");
     } catch (IOException e) {
       if (e.getMessage() != null)
-        view.displayMessage("I/O Error occured.\n\n" + e.getMessage());
-      else view.displayMessage("I/O Error occured.\n\n");
+        getView().displayMessage("I/O Error occured.\n\n" + e.getMessage());
+      else getView().displayMessage("I/O Error occured.\n\n");
     } catch (UnsupportedAudioFileException e) {
       if (e.getMessage() != null)
-        view.displayMessage(
+        getView().displayMessage(
           "Sound files specified are unsupported.\n\n" + 
           e.getMessage()
         );
       else 
-        view.displayMessage("Sound files specified are unsupported.\n\n");
+        getView().displayMessage("Sound files specified are unsupported.\n\n");
     }
   }
 
@@ -290,24 +227,14 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
   public void clean() {
     try {      
       //1. release system resources
-      switch (model.readMetronomeType()) {
-        case REG:
-          getRegularMetronome().getSoundRez().releaseResources(); break;
-        case GAP:
-          getGapMetronome().getSoundRez().releaseResources(); break;
-        case TIMED:
-          getTimedMetronome().getSoundRez().releaseResources(); break;
-        case SPEED:
-          getSpeedMetronome().getSoundRez().releaseResources(); break;
-        default: break;
-      }
+      MetronomeDependencyInjector.getSoundRez().releaseResources();
       
       //2. store current session
-      model.writeCurrentSessionToFile();
+      getModel().writeCurrentSessionToFile();
     } catch (IOException e) {
       if (e.getMessage() != null)
-        view.displayMessage("I/O Error occured.\n\n" + e.getMessage());
-      else view.displayMessage("I/O Error occured.\n\n");
+        getView().displayMessage("I/O Error occured.\n\n" + e.getMessage());
+      else getView().displayMessage("I/O Error occured.\n\n");
     }
   }
 
@@ -345,63 +272,247 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
   @Override
   public void updateMetronomeSettings(MetronomeType metType,
                                       HashMap<String, Number> settings) {
-    model.writeMetronomeSettings(metType, settings);
+    switch (metType) {
+      case REG:
+        getRegularMetronome().bulkSet(settings);
+        getModel().writeMetronomeSettings(metType, 
+                                     getRegularMetronome().getSettings());
+        break;
+      case GAP:
+        getGapMetronome().bulkSet(settings);
+        getModel().writeMetronomeSettings(metType, 
+                                          getGapMetronome().getSettings());
+        break;
+      case TIMED:
+        getTimedMetronome().bulkSet(settings);
+        getModel().writeMetronomeSettings(metType,
+                                     getTimedMetronome().getSettings());
+        break;
+      case SPEED:
+        getSpeedMetronome().bulkSet(settings);
+        getModel().writeMetronomeSettings(metType, 
+                                     getSpeedMetronome().getSettings());
+        break;
+      default: break;
+    }
+    getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+          metType));
   }
 
   @Override
   public void updateMetronomeSetting(MetronomeType metType, String settingKey,
                                      Number setting) {
-    model.writeMetronomeSetting(metType, settingKey, setting);
+    switch (metType) {
+      case REG:
+        switch (settingKey) {
+          case MetronomeConstants.MetronomeSettingsKeys.TEMPO:
+            getRegularMetronome().setTempo((Float) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getRegularMetronome().getTempo());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.MEASURE:
+            getRegularMetronome().setMeasure((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getRegularMetronome().getMeasure());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION:
+            getRegularMetronome().setSubDivision((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getRegularMetronome().getSubDivision());
+            break;
+        } 
+        break;
+      case GAP:
+        switch (settingKey) {
+          case MetronomeConstants.MetronomeSettingsKeys.TEMPO:
+            getGapMetronome().setTempo((Float) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getGapMetronome().getTempo());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.MEASURE:
+            getGapMetronome().setMeasure((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getGapMetronome().getMeasure());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION:
+            getGapMetronome().setSubDivision((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getGapMetronome().getSubDivision());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.LOUD_MEASURES:
+            getGapMetronome().setLoudMeasures((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getGapMetronome().getLoudMeasures());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.SILENT_MEASURES:
+            getGapMetronome().setSilentMeasures((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getGapMetronome().getSilentMeasures());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.GAP_LENGTH_INCREMENT:
+            getGapMetronome().setGapLengthIncrement((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getGapMetronome().getGapLengthIncrement());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.GAP_REPETITIONS:
+            getGapMetronome().setGapRepetitions((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getGapMetronome().getGapRepetitions());
+            break;
+        } 
+        break;
+      case TIMED:
+        switch (settingKey) {
+          case MetronomeConstants.MetronomeSettingsKeys.TEMPO:
+            getTimedMetronome().setTempo((Float) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getTimedMetronome().getTempo());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.MEASURE:
+            getTimedMetronome().setMeasure((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getTimedMetronome().getMeasure());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION:
+            getTimedMetronome().setSubDivision((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getTimedMetronome().getSubDivision());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.DURATION:
+            getTimedMetronome().setDuration((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getTimedMetronome().getDuration());
+            break;
+        } 
+        break;
+      case SPEED:
+        switch (settingKey) {
+          case MetronomeConstants.MetronomeSettingsKeys.TEMPO_LENGTH:
+            getSpeedMetronome().setTempoLength((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getSpeedMetronome().getTempoLength());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.MEASURE:
+            getSpeedMetronome().setMeasure((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getSpeedMetronome().getMeasure());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION:
+            getSpeedMetronome().setSubDivision((Integer) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getSpeedMetronome().getSubDivision());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.TEMPO_INCREMENT:
+            getSpeedMetronome().setTempoIncrement((Float) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getSpeedMetronome().getTempoIncrement());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.START_TEMPO:
+            getSpeedMetronome().setStartTempo((Float) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getSpeedMetronome().getStartTempo());
+            break;
+          case MetronomeConstants.MetronomeSettingsKeys.END_TEMPO:
+            getSpeedMetronome().setEndTempo((Float) setting);
+            getModel().writeMetronomeSetting(
+              metType, settingKey, getSpeedMetronome().getEndTempo());
+            break;
+        } 
+        break;
+    }
+    getView().displayMetronomeSetting(
+      settingKey, getModel().readMetronomeSetting(metType, settingKey));
   }
 
   @Override
   public void updateMetronomeType(MetronomeType metType) {
-    model.writeMetronomeType(metType);
+    getModel().writeMetronomeType(metType);
   }
 
   @Override
   public void updateSoundSetting(String soundName, String soundFilePath) {
-    model.writeSoundSetting(soundName, soundFilePath);
+    SoundRez soundRez = MetronomeDependencyInjector.getSoundRez();
+    SoundType type = null;
+    switch (soundName) {
+      case MetronomeConstants.MetronomeSettingsKeys.ACCENT:
+        type = SoundType.ACCENT; break;
+      case MetronomeConstants.MetronomeSettingsKeys.BEAT:
+        type = SoundType.BEAT; break;
+      case MetronomeConstants.MetronomeSettingsKeys.CLICK:
+        type = SoundType.CLICK; break;
+      case MetronomeConstants.MetronomeSettingsKeys.TEMPO_CHANGE:
+        type = SoundType.TEMPO_CHANGE;
+    }
+    try {
+      if (soundRez.getSoundFromFile(type, soundFilePath)) {
+        getModel().writeSoundSetting(soundName, soundFilePath);
+        getView().displaySoundSetting(soundName, getSoundSetting(soundName));
+      } else getView().displayMessage("Sound file is unprepared.\n");
+    } catch (IOException e) {
+      if (e.getMessage() != null)
+        getView().displayMessage("I/O Error occured.\n\n" + e.getMessage());
+      else getView().displayMessage("I/O Error occured.\n\n");
+    } catch (UnsupportedAudioFileException e) {
+      if (e.getMessage() != null)
+        getView().displayMessage(
+          "Sound file specified is unsupported.\n\n" + 
+          e.getMessage()
+        );
+      else 
+        getView().displayMessage("Sound file specified is unsupported.\n\n");
+    }
   }
 
   @Override
-  public SoundSettings getSoundSettings() {
-    return model.readSoundSettings();
+  public HashMap<String, String> getSoundSettings() {
+    HashMap<String, String> soundSettings = new HashMap<>();
+    SoundSettings sounds = getModel().readSoundSettings();
+    soundSettings.put(MetronomeConstants.MetronomeSettingsKeys.ACCENT, 
+                      sounds.getAccentSound());
+    soundSettings.put(MetronomeConstants.MetronomeSettingsKeys.BEAT, 
+                      sounds.getBeatSound());
+    soundSettings.put(MetronomeConstants.MetronomeSettingsKeys.CLICK, 
+                      sounds.getClickSound());
+    soundSettings.put(MetronomeConstants.MetronomeSettingsKeys.TEMPO_CHANGE, 
+                      sounds.getTempoChangeSound());
+    return soundSettings;
   }
 
   @Override
   public String getSoundSetting(String soundName) {
-    return model.readSoundSetting(soundName);
+    return getModel().readSoundSetting(soundName);
   }
 
   @Override
   public LinkedHashMap<String, ? extends MetronomeSettings> 
         getMetronomePresets(MetronomeType metType) {
-    return model.readMetronomePresets(metType);
+    return getModel().readMetronomePresets(metType);
   }
 
   @Override
   public MetronomeSettings getMetronomePreset(MetronomeType metType,
                                               String presetName) {
-    return model.readMetronomePreset(metType, presetName);
+    return getModel().readMetronomePreset(metType, presetName);
   }
 
   @Override
   public void loadMetronomePreset(MetronomeType metType, String presetName) {
-    MetronomeSettings preset = model.readMetronomePreset(metType, presetName);
-    HashMap<String, Number> settings 
+    MetronomeSettings preset 
+      = getModel().readMetronomePreset(metType, presetName);
+    HashMap<String, Number> presetSettings 
       = getHashMapFromMetronomeSettings(metType, preset);
     switch (metType) {
       case REG:
-        getRegularMetronome().bulkSet(settings); break;
+        getRegularMetronome().bulkSet(presetSettings); break;
       case GAP:
-        getGapMetronome().bulkSet(settings); break;
+        getGapMetronome().bulkSet(presetSettings); break;
       case TIMED:
-        getTimedMetronome().bulkSet(settings); break;
+        getTimedMetronome().bulkSet(presetSettings); break;
       case SPEED:
-        getSpeedMetronome().bulkSet(settings); break;
+        getSpeedMetronome().bulkSet(presetSettings); break;
       default: break;
     }
+    getView().displayMetronomeSettings(presetSettings);
   }
 
   @Override
@@ -409,7 +520,9 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
                                   HashMap<String, Number> settings) {
     MetronomeSettings preset 
       = getMetronomeSettingsFromHashMap(metType, settings);
-    model.addMetronomePreset(metType, presetName, preset);
+    getModel().addMetronomePreset(metType, presetName, preset);
+    getView().displayMetronomePreset(presetName, getModel().readMetronomePreset(
+                                     metType, presetName));
   }
   
   private MetronomeSettings 
