@@ -88,7 +88,7 @@ public final class MetronomeContract {
                                                        Number setting);
     void updateMetronomeType(MetronomeType metType);
     void updateSoundSetting(String soundName, String soundFilePath);
-    SoundSettings getSoundSettings();
+    HashMap<String, String> getSoundSettings();
     String getSoundSetting(String soundName);
     LinkedHashMap<String, ? extends MetronomeSettings> 
         getMetronomePresets(MetronomeType metType);

@@ -81,14 +81,14 @@ public final class MetronomeConstants {
   public final class VariableTempoMetronome {
     
     public static final float MAX_START_TEMPO 
-      = ConstantTempoMetronome.MAX_TEMPO - 1.0F;
+      = ConstantTempoMetronome.MAX_TEMPO - 20.0F;
     public static final float MIN_START_TEMPO 
-      = ConstantTempoMetronome.MIN_TEMPO;
+      = ConstantTempoMetronome.MIN_TEMPO + 10.0F;
     public static final float DEFAULT_START_TEMPO = 90.0F;
     public static final float MAX_END_TEMPO 
-      = ConstantTempoMetronome.MAX_TEMPO;
+      = ConstantTempoMetronome.MAX_TEMPO - 10.0F;
     public static final float MIN_END_TEMPO 
-      = ConstantTempoMetronome.MIN_TEMPO + 1.0F;
+      = ConstantTempoMetronome.MIN_TEMPO + 20.0F;
     public static final float DEFAULT_END_TEMPO = 120.0F;
 
     private VariableTempoMetronome() {
