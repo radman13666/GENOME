@@ -44,11 +44,6 @@ public final class SessionHandler implements MetronomeContract.Model {
     if (instance == null) instance = new SessionHandler();
     return instance;
   }
-  
-  public static void destroyInstance() {
-    Session.destroyInstance();
-    instance = null;
-  }
 
   private Session getSession() {
     return session;
@@ -1184,18 +1179,18 @@ public final class SessionHandler implements MetronomeContract.Model {
                     .SoundSettings.TEMPO_CHANGE_SOUND_SETTINGS_FILE);
     
     if (getSession() != null) {
-      if (!(metTypeSettingsFile.exists() &
-            regSettingsFile.exists() &
-            gapSettingsFile.exists() &
-            timedSettingsFile.exists() &
-            speedSettingsFile.exists() &
-            regPresetsFile.exists() &
-            gapPresetsFile.exists() &
-            timedPresetsFile.exists() &
-            speedPresetsFile.exists() &
-            accentFile.exists() &
-            beatFile.exists() &
-            clickFile.exists() &
+      if (!(metTypeSettingsFile.exists() &&
+            regSettingsFile.exists() &&
+            gapSettingsFile.exists() &&
+            timedSettingsFile.exists() &&
+            speedSettingsFile.exists() &&
+            regPresetsFile.exists() &&
+            gapPresetsFile.exists() &&
+            timedPresetsFile.exists() &&
+            speedPresetsFile.exists() &&
+            accentFile.exists() &&
+            beatFile.exists() &&
+            clickFile.exists() &&
             tmpChFile.exists())) {
         setDefaults();
       } else {

@@ -46,10 +46,6 @@ public final class Session {
     if (instance == null) instance = new Session();
     return instance;
   }
-  
-  public static void destroyInstance() {
-    instance = null;
-  }
 
   public RegularMetronomeSettings getRegularMetronomeSettings() {
     return regularMetronomeSettings;
