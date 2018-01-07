@@ -126,7 +126,7 @@ public final class SoundRez {
   }
   
   public void getResources() throws LineUnavailableException {
-    setLine(
+    if (getLine() == null) setLine(
       AudioSystem.getSourceDataLine(MetronomeConstants.DEFAULT_AUDIO_FORMAT)
     );
     if (!(getLine() == null || getLine().isOpen())) 
@@ -135,6 +135,7 @@ public final class SoundRez {
   
   public void releaseResources() {
     if (getLine() != null && getLine().isOpen()) getLine().close();
+    setLine(null);
   }
 
   public byte[] getAccentSound() {
