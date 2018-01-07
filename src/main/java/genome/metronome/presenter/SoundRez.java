@@ -53,32 +53,36 @@ public final class SoundRez {
     instance = null;
   }
   
-  public boolean prepareSound(SoundType type, String soundFile) 
+  public boolean getSoundFromFile(SoundType type, String soundFile) 
     throws IOException, UnsupportedAudioFileException {
     if (isValid(soundFile)) {
       switch (type) {
         case ACCENT:
-          setAccentSound(getAudioData(soundFile)); return true;
+          setAccentSound(getAudioData(soundFile)); 
+          return getAccentSound() != null;
         case BEAT:
-          setBeatSound(getAudioData(soundFile)); return true;
+          setBeatSound(getAudioData(soundFile)); 
+          return getBeatSound() != null;
         case CLICK:
-          setClickSound(getAudioData(soundFile)); return true;
+          setClickSound(getAudioData(soundFile)); 
+          return getClickSound() != null;
         case TEMPO_CHANGE:
-          setTempoChangeSound(getAudioData(soundFile)); return true;
+          setTempoChangeSound(getAudioData(soundFile)); 
+          return getTempoChangeSound() != null;
         default:
           return false;
       }
     } else return false;
   }
   
-  public boolean prepareSounds(String accentFile, String beatFile, 
+  public boolean getSoundsFromFiles(String accentFile, String beatFile, 
                                                   String clickFile, 
                                                   String tempoChangeFile) 
     throws IOException, UnsupportedAudioFileException {
-    return prepareSound(SoundType.ACCENT, accentFile) &&
-           prepareSound(SoundType.BEAT, beatFile) &&
-           prepareSound(SoundType.CLICK, clickFile) && 
-           prepareSound(SoundType.TEMPO_CHANGE, tempoChangeFile);
+    return getSoundFromFile(SoundType.ACCENT, accentFile) &&
+           getSoundFromFile(SoundType.BEAT, beatFile) &&
+           getSoundFromFile(SoundType.CLICK, clickFile) && 
+           getSoundFromFile(SoundType.TEMPO_CHANGE, tempoChangeFile);
   }
   
   public boolean isValid(String soundFile) 
@@ -129,13 +133,12 @@ public final class SoundRez {
     setLine(
       AudioSystem.getSourceDataLine(MetronomeConstants.DEFAULT_AUDIO_FORMAT)
     );
-    if (!getLine().isOpen()) 
+    if (!(getLine() == null || getLine().isOpen())) 
       getLine().open(MetronomeConstants.DEFAULT_AUDIO_FORMAT);
   }
   
   public void releaseResources() {
-    if (getLine().isOpen()) getLine().close();
-    setLine(null);
+    if (getLine() != null && getLine().isOpen()) getLine().close();
   }
 
   public byte[] getAccentSound() {
