@@ -59,7 +59,12 @@ public final class MetronomeConstants {
       public static final float DUTY_CYCLE = 0.5F; //of the period
       public static final String HOST = "localhost";
       public static final int SERVER_PORT = 6699;
-      public static final int BUFFER_SIZE = 1024 * 500; // 500 KiB
+      public static final int UNIT_BUFFER_SIZE = 1024; // 1 KiB
+      public static final int CAT_BUFFER_SIZE = UNIT_BUFFER_SIZE * 160;
+      public static final int BOS_BUFFER_SIZE = UNIT_BUFFER_SIZE * 80;
+      public static final int BIS_BUFFER_SIZE = UNIT_BUFFER_SIZE * 160;
+      public static final int WAT_BUFFER_SIZE = UNIT_BUFFER_SIZE * 16;
+      //public static final int SDL_BUFFER_SIZE = UNIT_BUFFER_SIZE * 160;
       
       private AudioTasks() {
       }
@@ -99,7 +104,7 @@ public final class MetronomeConstants {
   public final class TimedMetronome {
     
     public static final int MAX_DURATION = 120;
-    public static final int MIN_DURATION = 5;
+    public static final int MIN_DURATION = 2;
     public static final int DEFAULT_DURATION = 10;
 
     private TimedMetronome() {
@@ -161,9 +166,6 @@ public final class MetronomeConstants {
     public static final int NUM_CHANNELS = 2;
     public static final float DURATION = 0.250F; //seconds
     public static final boolean BIG_ENDIAN = false;
-//    public static final AudioFormat.Encoding ENCODING = AudioFormat
-//            .Encoding.PCM_SIGNED;
-//    public static final AudioFileFormat.Type TYPE = AudioFileFormat.Type.WAVE;
 
     private SoundRez() {
     }

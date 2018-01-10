@@ -120,8 +120,10 @@ public final class RegularMetronome extends ConstantTempoMetronome {
         //1. Connect to the server and get an output stream.
         socket = new Socket(MetronomeConstants.Metronome.AudioTasks.HOST, 
           MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
-        out = new BufferedOutputStream(socket.getOutputStream());
-        buffer = new byte[MetronomeConstants.Metronome.AudioTasks.BUFFER_SIZE];
+        out = new BufferedOutputStream(socket.getOutputStream(), 
+          MetronomeConstants.Metronome.AudioTasks.BOS_BUFFER_SIZE);
+        buffer 
+          = new byte[MetronomeConstants.Metronome.AudioTasks.CAT_BUFFER_SIZE];
         int numBytesCreated;
         
         //2. continuously create data and write it to the stream until

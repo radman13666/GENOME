@@ -171,6 +171,8 @@ public final class GapMetronome extends ConstantTempoMetronome {
       gapGraphIterations = 0L;
     private BigInteger gapGraphPeriodInBytes;
     private BigInteger t = BigInteger.ZERO;
+    private BigInteger tMark = BigInteger.ZERO;
+    private long nMark = 0L, aNMark = 0L, gNMark = 0L;
     
     public CreateGapClickTrackTask(float tempo, 
                                    int measure, 
@@ -210,13 +212,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
         loudMeasuresInBytes + silentMeasuresInBytes
       );
       
-      long gapGraphDutyCycle
-        = BigInteger.valueOf(loudMeasuresInBytes)
-          .divide(gapGraphPeriodInBytes).longValue();
-      
-      gapGraphDutyCycleInBytes 
-        = gapGraphDutyCycle - 
-          (gapGraphDutyCycle % MetronomeConstants.SoundRez.FRAME_SIZE);
+      gapGraphDutyCycleInBytes = loudMeasuresInBytes;
     }
 
     @Override
@@ -225,12 +221,14 @@ public final class GapMetronome extends ConstantTempoMetronome {
         //1. Connect to the server and get an output stream.
         socket = new Socket(MetronomeConstants.Metronome.AudioTasks.HOST, 
           MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
-        out = new BufferedOutputStream(socket.getOutputStream());
-        buffer = new byte[MetronomeConstants.Metronome.AudioTasks.BUFFER_SIZE];
+        out = new BufferedOutputStream(socket.getOutputStream(), 
+          MetronomeConstants.Metronome.AudioTasks.BOS_BUFFER_SIZE);
+        buffer 
+          = new byte[MetronomeConstants.Metronome.AudioTasks.CAT_BUFFER_SIZE];
         int numBytesCreated;
         
         //2. continuously create data and write it to the stream until
-        //   the thread is interrupted.
+        //   the thread is stopped.
         while (!isStopped) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
@@ -247,19 +245,28 @@ public final class GapMetronome extends ConstantTempoMetronome {
         gN = gapGraphIterations;
 
       while (c < buffer.length) {
-        buffer[c] = soundGenerator(functionGenerator(t, aN, n, gN, aT));
+        buffer[c] 
+          = soundGenerator(functionGenerator(t.subtract(tMark), 
+                                             aN - aNMark, 
+                                             n - nMark, 
+                                             gN - gNMark, aT));
         
         c++;
         t = t.add(BigInteger.ONE); //t++
         if (t.remainder(BigInteger.valueOf(periodInBytes)).intValue() == 0) n++;
         if (t.remainder(BigInteger.valueOf(aT)).intValue() == 0) aN++;
-        if (t.remainder(gapGraphPeriodInBytes).intValue() == 0) gN++;
-        if (getGapRepetitions() != 
+        if (t.subtract(tMark)
+             .remainder(gapGraphPeriodInBytes).intValue() == 0) {
+          gN++;
+          if (getGapRepetitions() != 
             MetronomeConstants.GapMetronome.INFINITE_GAP_REPETITIONS && 
-            (gN % getGapRepetitions()) == 0) 
-          gapGraphPeriodInBytes = gapGraphPeriodInBytes.add(
-            BigInteger.valueOf(gapLengthIncrementInBytes)
-          );
+            (gN % getGapRepetitions()) == 0) {
+            tMark = t; nMark = n; aNMark = aN; gNMark = gN;
+            gapGraphPeriodInBytes = gapGraphPeriodInBytes.add(
+              BigInteger.valueOf(gapLengthIncrementInBytes)
+            );
+          }
+        }
       }
       beatIterations = n;
       accentIterations = aN;

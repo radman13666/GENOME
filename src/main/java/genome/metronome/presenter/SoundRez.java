@@ -130,12 +130,13 @@ public final class SoundRez {
       AudioSystem.getSourceDataLine(MetronomeConstants.DEFAULT_AUDIO_FORMAT)
     );
     if (!(getLine() == null || getLine().isOpen())) 
-      getLine().open(MetronomeConstants.DEFAULT_AUDIO_FORMAT);
+      getLine().open(MetronomeConstants.DEFAULT_AUDIO_FORMAT/*, 
+        MetronomeConstants.Metronome.AudioTasks.SDL_BUFFER_SIZE*/);
   }
   
   public void releaseResources() {
     if (getLine() != null && getLine().isOpen()) getLine().close();
-    setLine(null);
+    //setLine(null);
   }
 
   public byte[] getAccentSound() {

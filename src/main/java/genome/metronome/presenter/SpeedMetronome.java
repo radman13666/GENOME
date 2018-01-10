@@ -130,14 +130,16 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     private long beatIterations = 0L, accentIterations = 0L,
       tempoChangeIterations = 0L;
     private BigInteger t = BigInteger.ZERO;
+    private BigInteger tMark = BigInteger.ZERO;
+    private long nMark = 0L, aNMark = 0L, cNMark = 0L;
 
     public CreateSpeedClickTrackTask() {
       currentTempo = getStartTempo();
       
-      numMeasures = ((int) Math.ceil(
+      numMeasures = (((int) Math.ceil(
         (getEndTempo() - getStartTempo()) / 
         getTempoIncrement()
-      )) * getTempoLength();
+      )) + 1) * getTempoLength();
       
       doTempoChange();
     }
@@ -148,8 +150,10 @@ public final class SpeedMetronome extends VariableTempoMetronome {
         //1. Connect to the server and get an output stream.
         socket = new Socket(MetronomeConstants.Metronome.AudioTasks.HOST, 
           MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
-        out = new BufferedOutputStream(socket.getOutputStream());
-        buffer = new byte[MetronomeConstants.Metronome.AudioTasks.BUFFER_SIZE];
+        out = new BufferedOutputStream(socket.getOutputStream(), 
+          MetronomeConstants.Metronome.AudioTasks.BOS_BUFFER_SIZE);
+        buffer 
+          = new byte[MetronomeConstants.Metronome.AudioTasks.CAT_BUFFER_SIZE];
         int numBytesCreated;
 
         //2. continuously create data and write it to the stream until
@@ -166,21 +170,31 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     @Override
     protected int create(byte[] buffer) {
       int c = 0;
-      long n = beatIterations, aN = accentIterations, aT = measureInBytes,
+      long n = beatIterations, aN = accentIterations,
         cN = tempoChangeIterations;
 
       while (c < buffer.length) {
-        buffer[c] = soundGenerator(functionGenerator(t, aN, n, cN, aT));
+        buffer[c] 
+          = soundGenerator(functionGenerator(t.subtract(tMark), 
+                                             aN - aNMark, 
+                                             n - nMark, 
+                                             cN - cNMark, measureInBytes));
         
         c++;
         t = t.add(BigInteger.ONE); //t++
-        if (t.remainder(BigInteger.valueOf(periodInBytes)).intValue() == 0) n++;
-        if (t.remainder(BigInteger.valueOf(aT)).intValue() == 0) aN++;
-        if (aN == numMeasures) return c;
-        if (t.remainder(BigInteger.valueOf(tempoChangeIterations))
-          .intValue() == 0) {
+        if (t.subtract(tMark)
+             .remainder(BigInteger.valueOf(periodInBytes)).intValue() == 0) 
+          n++;
+        if (t.subtract(tMark)
+             .remainder(BigInteger.valueOf(measureInBytes)).intValue() == 0) 
+          aN++;
+        if (aN == numMeasures) break;
+        if (t.subtract(tMark)
+             .remainder(BigInteger.valueOf(tempoChangePeriodInBytes))
+             .intValue() == 0) {
           cN++;
           currentTempo += getTempoIncrement();
+          tMark = t; nMark = n; aNMark = aN; cNMark = cN;
           doTempoChange();
         }
       }

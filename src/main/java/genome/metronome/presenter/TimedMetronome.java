@@ -147,8 +147,10 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         //1. Connect to the server and get an output stream.
         socket = new Socket(MetronomeConstants.Metronome.AudioTasks.HOST, 
           MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
-        out = new BufferedOutputStream(socket.getOutputStream());
-        buffer = new byte[MetronomeConstants.Metronome.AudioTasks.BUFFER_SIZE];
+        out = new BufferedOutputStream(socket.getOutputStream(), 
+          MetronomeConstants.Metronome.AudioTasks.BOS_BUFFER_SIZE);
+        buffer 
+          = new byte[MetronomeConstants.Metronome.AudioTasks.CAT_BUFFER_SIZE];
         int numBytesCreated;
 
         //2. continuously create data and write it to the stream until
@@ -173,9 +175,7 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         
         c++;
         t = t.add(BigInteger.ONE); //t++
-        if (t.compareTo(durationInBytes) == 0) { //t == duration
-          return c;
-        }
+        if (t.compareTo(durationInBytes) == 0) break; // when t == duration
         if (t.remainder(BigInteger.valueOf(periodInBytes)).intValue() == 0) n++;
         if (accentOn && t.remainder(BigInteger.valueOf(aT)).intValue() == 0) 
           aN++;

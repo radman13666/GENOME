@@ -19,8 +19,8 @@
 package genome.metronome.presenter;
 
 import genome.metronome.utils.MetronomeConstants;
+import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -108,7 +108,7 @@ public abstract class Metronome {
   
   public final void stop() {
     getCreatingTask().stop();
-    getWritingTask().stop();
+    //getWritingTask().stop();
   }
   
   public abstract void bulkSet(HashMap<String, Number> settings);
@@ -119,16 +119,10 @@ public abstract class Metronome {
     
     private ServerSocket serverSocket;
     private Socket clientSocket;
-    private InputStream in;
+    private BufferedInputStream in;
     private byte[] buffer;
-    private volatile boolean isStopped;
 
     protected WriteAudioTask() {
-      this.isStopped = false;
-    }
-    
-    private void stop() {
-      this.isStopped = true;
     }
 
     @Override
@@ -139,16 +133,22 @@ public abstract class Metronome {
         serverSocket = new ServerSocket(
           MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
         clientSocket = serverSocket.accept();
-        in = clientSocket.getInputStream();
+        in = new BufferedInputStream(clientSocket.getInputStream(), 
+          MetronomeConstants.Metronome.AudioTasks.BIS_BUFFER_SIZE);
         
         //2. when the data is received, it is written to the audio devices
-        //   throught a buffered audio output stream.
-        buffer = new byte[MetronomeConstants.Metronome.AudioTasks.BUFFER_SIZE];
-        int numBytesRead;
+        //   through a buffered audio output stream.
+        buffer 
+          = new byte[MetronomeConstants.Metronome.AudioTasks.WAT_BUFFER_SIZE];
+        int numBytesRead, p, b;
         
         getSoundRez().getLine().start();
-        while (!(isStopped || (numBytesRead = in.read(buffer)) == -1)) {
-          getSoundRez().getLine().write(buffer, 0, numBytesRead);
+        while ((numBytesRead = in.read(buffer, 0, buffer.length)) != -1) {
+          //TODO: find a way to always write an integral number of sample frames
+          //      to the SDL
+          b = numBytesRead % MetronomeConstants.SoundRez.FRAME_SIZE;
+          p = numBytesRead - b;
+          getSoundRez().getLine().write(buffer, 0, p);
         }
         getSoundRez().getLine().stop();
         getSoundRez().getLine().flush();
