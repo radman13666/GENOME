@@ -25,12 +25,13 @@ import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Observable;
 
 /**
  *
  * @author William Kibirango <williamkaos.kibirango76@gmail.com>
  */
-public abstract class Metronome {
+public abstract class Metronome extends Observable {
   
   protected int measure;
   protected int subDivision;
@@ -63,6 +64,8 @@ public abstract class Metronome {
         this.measure = measure;
       else this.measure = MetronomeConstants.Metronome.COMMON_TIME;
     }
+    setChanged(); 
+    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.MEASURE);
   }
 
   public final int getSubDivision() {
@@ -75,6 +78,8 @@ public abstract class Metronome {
          subDivision <= MetronomeConstants.Metronome.MAX_SUB_DIVISION))
       this.subDivision = subDivision;
     else this.subDivision = MetronomeConstants.Metronome.NO_SUB_DIVISION;
+    setChanged(); 
+    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION);
   }
 
   protected final SoundRez getSoundRez() {

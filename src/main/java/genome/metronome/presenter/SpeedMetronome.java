@@ -33,6 +33,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
   
   private int tempoLength;
   private float tempoIncrement;
+  private float currentTempo = 0F;
 
   public SpeedMetronome() {
   }
@@ -54,6 +55,8 @@ public final class SpeedMetronome extends VariableTempoMetronome {
       this.tempoLength = tempoLength;
     else this.tempoLength 
       = MetronomeConstants.SpeedMetronome.DEFAULT_TEMPO_LENGTH;
+    setChanged(); 
+    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.TEMPO_LENGTH);
   }
 
   public float getTempoIncrement() {
@@ -67,6 +70,18 @@ public final class SpeedMetronome extends VariableTempoMetronome {
       this.tempoIncrement = tempoIncrement;
     else this.tempoIncrement 
       = MetronomeConstants.SpeedMetronome.DEFAULT_TEMPO_INCREMENT;
+    setChanged(); 
+    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.TEMPO_INCREMENT);
+  }
+
+  public float getCurrentTempo() {
+    return currentTempo;
+  }
+
+  private void incrementCurrentTempo(float tempoIncrement) {
+    this.currentTempo += tempoIncrement;
+    setChanged(); 
+    notifyObservers(MetronomeConstants.Metronome.AudioTasks.SM_CURRENT_TEMPO);
   }
 
   @Override
@@ -126,7 +141,6 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     private long tempoChangePeriodInBytes;
     private long periodDutyCycleInBytes;
     private final int numMeasures;
-    private float currentTempo;
     private long beatIterations = 0L, accentIterations = 0L,
       tempoChangeIterations = 0L;
     private BigInteger t = BigInteger.ZERO;
@@ -134,14 +148,12 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     private long nMark = 0L, aNMark = 0L, cNMark = 0L;
 
     public CreateSpeedClickTrackTask() {
-      currentTempo = getStartTempo();
-      
       numMeasures = (((int) Math.ceil(
         (getEndTempo() - getStartTempo()) / 
         getTempoIncrement()
       )) + 1) * getTempoLength();
       
-      doTempoChange();
+      doTempoChange(getStartTempo());
     }
 
     @Override
@@ -162,6 +174,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
+        currentTempo = 0F;
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -192,10 +205,8 @@ public final class SpeedMetronome extends VariableTempoMetronome {
         if (t.subtract(tMark)
              .remainder(BigInteger.valueOf(tempoChangePeriodInBytes))
              .intValue() == 0) {
-          cN++;
-          currentTempo += getTempoIncrement();
-          tMark = t; nMark = n; aNMark = aN; cNMark = cN;
-          doTempoChange();
+          cN++; tMark = t; nMark = n; aNMark = aN; cNMark = cN;
+          doTempoChange(getTempoIncrement());
         }
       }
       beatIterations = n;
@@ -220,9 +231,11 @@ public final class SpeedMetronome extends VariableTempoMetronome {
                    cN, tempoChangePeriodInBytes));
     }
     
-    private void doTempoChange() {
+    private void doTempoChange(float tempoIncrement) {
+      incrementCurrentTempo(tempoIncrement);
+      
       long period = (long) Math.round(
-        (60 / currentTempo) *
+        (60 / getCurrentTempo()) *
         MetronomeConstants.SoundRez.FRAME_RATE *
         MetronomeConstants.SoundRez.FRAME_SIZE
       );

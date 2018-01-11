@@ -50,6 +50,8 @@ public abstract class VariableTempoMetronome extends Metronome {
       this.startTempo = startTempo;
     else this.startTempo 
       = MetronomeConstants.VariableTempoMetronome.DEFAULT_START_TEMPO;
+    setChanged(); 
+    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.START_TEMPO);
   }
 
   public final float getEndTempo() {
@@ -62,6 +64,8 @@ public abstract class VariableTempoMetronome extends Metronome {
       this.endTempo = endTempo;
     else this.endTempo 
       = MetronomeConstants.VariableTempoMetronome.DEFAULT_END_TEMPO;
+    setChanged(); 
+    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.END_TEMPO);
   }
   
 }

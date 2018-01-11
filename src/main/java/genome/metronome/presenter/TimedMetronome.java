@@ -51,6 +51,8 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         duration <= MetronomeConstants.TimedMetronome.MAX_DURATION)
       this.duration = duration;
     else this.duration = MetronomeConstants.TimedMetronome.DEFAULT_DURATION;
+    setChanged(); 
+    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.DURATION);
   }
 
   @Override

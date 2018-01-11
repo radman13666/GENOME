@@ -58,6 +58,7 @@ public final class MetronomeConstants {
       public static final byte CLICK_MARKER = 1;
       public static final float DUTY_CYCLE = 0.5F; //of the period
       public static final String HOST = "localhost";
+      public static final String SM_CURRENT_TEMPO = "currentTempo";
       public static final int SERVER_PORT = 6699;
       public static final int UNIT_BUFFER_SIZE = 1024; // 1 KiB
       public static final int CAT_BUFFER_SIZE = UNIT_BUFFER_SIZE * 160;
