@@ -40,15 +40,15 @@ public final class Session {
   private static Session instance = null;
 
   private Session() {
+    this.regularMetronomeSettings = new RegularMetronomeSettings();
+    this.gapMetronomeSettings = new GapMetronomeSettings();
+    this.timedMetronomeSettings = new TimedMetronomeSettings();
+    this.speedMetronomeSettings = new SpeedMetronomeSettings();
   }
   
   public static Session getInstance() {
     if (instance == null) instance = new Session();
     return instance;
-  }
-  
-  public static void destroyInstance() {
-    instance = null;
   }
 
   public RegularMetronomeSettings getRegularMetronomeSettings() {

@@ -18,6 +18,7 @@
  */
 package genome.metronome.utils;
 
+import java.io.File;
 import javax.sound.sampled.AudioFormat;
 
 /**
@@ -34,7 +35,49 @@ public final class MetronomeConstants {
         SoundRez.BIG_ENDIAN
     );
   public static final double FLOAT_ERROR_BOUND = 1E-7;
-
+  
+  //File paths
+  public static final String FSEP = File.separator;
+  public static final String SOUNDS_DIR = "sounds";
+  public static final String BASE_CONFIG_DIR 
+    = System.getProperty("user.home") + FSEP + ".genome";
+  public static final String SETTINGS_DIR 
+    = BASE_CONFIG_DIR + FSEP + "settings";
+  public static final String DEFAULT_ACCENT_SOUND_FILE 
+    = SOUNDS_DIR + FSEP + "accent.wav";
+  public static final String DEFAULT_BEAT_SOUND_FILE 
+    = SOUNDS_DIR + FSEP + "beat.wav";
+  public static final String DEFAULT_CLICK_SOUND_FILE 
+    = SOUNDS_DIR + FSEP + "click.wav";
+  public static final String DEFAULT_TEMPO_CHANGE_SOUND_FILE 
+    = SOUNDS_DIR + FSEP + "tempoChange.wav";
+  public static final String METRONOME_TYPE_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "metronomeType.txt";
+  public static final String GAP_METRONOME_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "gapMetronome.txt";
+  public static final String GAP_METRONOME_PRESETS_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "gapMetronomePresets.txt";
+  public static final String TIMED_METRONOME_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "timedMetronome.txt";
+  public static final String TIMED_METRONOME_PRESETS_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "timedMetronomePresets.txt";
+  public static final String SPEED_METRONOME_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "speedMetronome.txt";
+  public static final String SPEED_METRONOME_PRESETS_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "speedMetronomePresets.txt";
+  public static final String REGULAR_METRONOME_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "regularMetronome.txt";
+  public static final String REGULAR_METRONOME_PRESETS_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "regularMetronomePresets.txt";
+  public static final String ACCENT_SOUND_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "accent.txt";
+  public static final String BEAT_SOUND_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "beat.txt";
+  public static final String CLICK_SOUND_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "click.txt";
+  public static final String TEMPO_CHANGE_SOUND_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "tempoChange.txt";
+    
   private MetronomeConstants() {
   }
   
@@ -52,6 +95,7 @@ public final class MetronomeConstants {
     }
     
     public final class AudioTasks {
+      
       public static final byte TEMPO_CHANGE_MARKER = 4;
       public static final byte ACCENT_MARKER = 3;
       public static final byte BEAT_MARKER = 2;
@@ -151,16 +195,7 @@ public final class MetronomeConstants {
   
   public final class SoundRez {
     
-    public static final String SOUNDS_DIRECTORY = "sounds";
-    public static final String DEFAULT_ACCENT_SOUND_FILE 
-      = SOUNDS_DIRECTORY + "/" + "accent.wav";
-    public static final String DEFAULT_BEAT_SOUND_FILE 
-      = SOUNDS_DIRECTORY + "/" + "beat.wav";
-    public static final String DEFAULT_CLICK_SOUND_FILE 
-      = SOUNDS_DIRECTORY + "/" + "click.wav";
-    public static final String DEFAULT_TEMPO_CHANGE_SOUND_FILE 
-      = SOUNDS_DIRECTORY + "/" + "tempoChange.wav";
-    public static final float SAMPLE_RATE = 44_100.0F; //Hz
+    public static final float SAMPLE_RATE = 44100.0F; //Hz
     public static final float FRAME_RATE = SAMPLE_RATE; //Hz
     public static final int SAMPLE_SIZE = 16; //bits
     public static final int FRAME_SIZE = 4; //bytes
@@ -193,81 +228,6 @@ public final class MetronomeConstants {
     public static final String TEMPO_CHANGE = "tempoChange";
 
     private MetronomeSettingsKeys() {
-    }
-    
-  }
-  
-  public final class Session {
-    
-    public static final String SETTINGS_DIRECTORY = "settings";
-    public static final String METRONOME_TYPE_SETTINGS_FILE 
-      = SETTINGS_DIRECTORY + "/" + "metronomeType.txt";
-
-    private Session() {
-    }
-    
-  }
-  
-  public final class GapMetronomeSettings {
-    
-    public static final String GAP_METRONOME_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "gapMetronome.txt";
-    public static final String GAP_METRONOME_PRESETS_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "gapMetronomePresets.txt";
-
-    private GapMetronomeSettings() {
-    }
-    
-  }
-  
-  public final class TimedMetronomeSettings {
-    
-    public static final String TIMED_METRONOME_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "timedMetronome.txt";
-    public static final String TIMED_METRONOME_PRESETS_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "timedMetronomePresets.txt";
-
-    private TimedMetronomeSettings() {
-    }
-    
-  }
-  
-  public final class SpeedMetronomeSettings {
-    
-    public static final String SPEED_METRONOME_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "speedMetronome.txt";
-    public static final String SPEED_METRONOME_PRESETS_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "speedMetronomePresets.txt";
-
-    private SpeedMetronomeSettings() {
-    }
-    
-  }
-  
-  public final class RegularMetronomeSettings {
-    
-    public static final String REGULAR_METRONOME_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "regularMetronome.txt";
-    public static final String REGULAR_METRONOME_PRESETS_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "regularMetronomePresets.txt";
-
-    private RegularMetronomeSettings() {
-    }
-    
-  }
-  
-  public final class SoundSettings {
-    
-    public static final String ACCENT_SOUND_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "accent.txt";
-    public static final String BEAT_SOUND_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "beat.txt";
-    public static final String CLICK_SOUND_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "click.txt";
-    public static final String TEMPO_CHANGE_SOUND_SETTINGS_FILE 
-      = Session.SETTINGS_DIRECTORY + "/" + "tempoChange.txt";
-
-    private SoundSettings() {
     }
     
   }

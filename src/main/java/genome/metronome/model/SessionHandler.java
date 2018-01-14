@@ -35,6 +35,36 @@ public final class SessionHandler implements MetronomeContract.Model {
   
   private Session session;
   private static SessionHandler instance = null;
+  private final File metTypeSettingsFile 
+            = new File(MetronomeConstants.METRONOME_TYPE_SETTINGS_FILE),
+            regSettingsFile 
+            = new File(MetronomeConstants.REGULAR_METRONOME_SETTINGS_FILE),
+            gapSettingsFile 
+            = new File(MetronomeConstants.GAP_METRONOME_SETTINGS_FILE),
+            timedSettingsFile 
+            = new File(MetronomeConstants.TIMED_METRONOME_SETTINGS_FILE),
+            speedSettingsFile 
+            = new File(MetronomeConstants.SPEED_METRONOME_SETTINGS_FILE),
+            regPresetsFile 
+            = new File(MetronomeConstants
+              .REGULAR_METRONOME_PRESETS_SETTINGS_FILE),
+            gapPresetsFile 
+            = new File(MetronomeConstants.GAP_METRONOME_PRESETS_SETTINGS_FILE),
+            timedPresetsFile 
+            = new File(MetronomeConstants
+              .TIMED_METRONOME_PRESETS_SETTINGS_FILE),
+            speedPresetsFile 
+            = new File(MetronomeConstants
+              .SPEED_METRONOME_PRESETS_SETTINGS_FILE),
+            accentFile 
+            = new File(MetronomeConstants.ACCENT_SOUND_SETTINGS_FILE),
+            beatFile 
+            = new File(MetronomeConstants.BEAT_SOUND_SETTINGS_FILE),
+            clickFile 
+            = new File(MetronomeConstants.CLICK_SOUND_SETTINGS_FILE),
+            tmpChFile 
+            = new File(MetronomeConstants.TEMPO_CHANGE_SOUND_SETTINGS_FILE),
+            settingsDir = new File(MetronomeConstants.SETTINGS_DIR);
 
   private SessionHandler() {
     setSession(Session.getInstance());
@@ -43,11 +73,6 @@ public final class SessionHandler implements MetronomeContract.Model {
   public static SessionHandler getInstance() {
     if (instance == null) instance = new SessionHandler();
     return instance;
-  }
-  
-  public static void destroyInstance() {
-    Session.destroyInstance();
-    instance = null;
   }
 
   private Session getSession() {
@@ -241,30 +266,11 @@ public final class SessionHandler implements MetronomeContract.Model {
     return presets;
   }
   
-  String readSoundSettingFromFile(String soundKey, File file) 
+  String readSoundSettingFromFile(File file) 
           throws IOException {
-    String sound = null;
-    switch (soundKey) {
-      case MetronomeConstants.MetronomeSettingsKeys.ACCENT:
-        try (Scanner accIn = new Scanner(file);) {
-          sound = accIn.next();
-        }
-        break;
-      case MetronomeConstants.MetronomeSettingsKeys.BEAT:
-        try (Scanner beatIn = new Scanner(file);) {
-          sound = beatIn.next();
-        }
-        break;
-      case MetronomeConstants.MetronomeSettingsKeys.CLICK:
-        try (Scanner clickIn = new Scanner(file);) {
-          sound = clickIn.next();
-        }
-        break;
-      case MetronomeConstants.MetronomeSettingsKeys.TEMPO_CHANGE:
-        try (Scanner tmpChIn = new Scanner(file);) {
-          sound = tmpChIn.next();
-        }
-        break;
+    String sound;
+    try (Scanner in = new Scanner(file);) {
+      sound = in.next();
     }
     return sound;
   }
@@ -275,14 +281,10 @@ public final class SessionHandler implements MetronomeContract.Model {
                                                   File tmpCh) 
           throws IOException {
     return new SoundSettings(
-            readSoundSettingFromFile(MetronomeConstants
-                    .MetronomeSettingsKeys.ACCENT, acc), 
-            readSoundSettingFromFile(MetronomeConstants
-                    .MetronomeSettingsKeys.BEAT, beat), 
-            readSoundSettingFromFile(MetronomeConstants
-                    .MetronomeSettingsKeys.CLICK, click), 
-            readSoundSettingFromFile(MetronomeConstants
-                    .MetronomeSettingsKeys.TEMPO_CHANGE, tmpCh)
+            readSoundSettingFromFile(acc), 
+            readSoundSettingFromFile(beat), 
+            readSoundSettingFromFile(click), 
+            readSoundSettingFromFile(tmpCh)
     );
   }
   
@@ -1028,12 +1030,17 @@ public final class SessionHandler implements MetronomeContract.Model {
     );
     
     //Accent, Beat, Click and Tempo change sounds
+    ClassLoader loader = getClass().getClassLoader();
     getSession().setSoundSettings(
             new SoundSettings(
-                    MetronomeConstants.SoundRez.DEFAULT_ACCENT_SOUND_FILE, 
-                    MetronomeConstants.SoundRez.DEFAULT_BEAT_SOUND_FILE, 
-                    MetronomeConstants.SoundRez.DEFAULT_CLICK_SOUND_FILE, 
-                    MetronomeConstants.SoundRez.DEFAULT_TEMPO_CHANGE_SOUND_FILE
+                    loader.getResource(MetronomeConstants
+                      .DEFAULT_ACCENT_SOUND_FILE).getFile(), 
+                    loader.getResource(MetronomeConstants
+                      .DEFAULT_BEAT_SOUND_FILE).getFile(), 
+                    loader.getResource(MetronomeConstants
+                      .DEFAULT_CLICK_SOUND_FILE).getFile(), 
+                    loader.getResource(MetronomeConstants
+                      .DEFAULT_TEMPO_CHANGE_SOUND_FILE).getFile()
             )
     );
     
@@ -1052,48 +1059,6 @@ public final class SessionHandler implements MetronomeContract.Model {
     //if the session is not null, write the data it holds to file.
     //if the files do not exist, they'll be created prior to writing.
     //if the files do exist, they'll be truncated prior to writing.
-    
-    File metTypeSettingsFile 
-          = new File(MetronomeConstants.Session.METRONOME_TYPE_SETTINGS_FILE),
-          regSettingsFile 
-          = new File(MetronomeConstants
-                  .RegularMetronomeSettings.REGULAR_METRONOME_SETTINGS_FILE),
-          gapSettingsFile 
-          = new File(MetronomeConstants
-                  .GapMetronomeSettings.GAP_METRONOME_SETTINGS_FILE),
-          timedSettingsFile 
-          = new File(MetronomeConstants
-                  .TimedMetronomeSettings.TIMED_METRONOME_SETTINGS_FILE),
-          speedSettingsFile 
-          = new File(MetronomeConstants
-                  .SpeedMetronomeSettings.SPEED_METRONOME_SETTINGS_FILE),
-          regPresetsFile 
-          = new File(MetronomeConstants
-                  .RegularMetronomeSettings
-                  .REGULAR_METRONOME_PRESETS_SETTINGS_FILE),
-          gapPresetsFile 
-          = new File(MetronomeConstants
-                  .GapMetronomeSettings.GAP_METRONOME_PRESETS_SETTINGS_FILE),
-          timedPresetsFile 
-          = new File(MetronomeConstants
-                  .TimedMetronomeSettings
-                  .TIMED_METRONOME_PRESETS_SETTINGS_FILE),
-          speedPresetsFile 
-          = new File(MetronomeConstants
-                  .SpeedMetronomeSettings
-                  .SPEED_METRONOME_PRESETS_SETTINGS_FILE),
-          accentFile 
-          = new File(MetronomeConstants
-                  .SoundSettings.ACCENT_SOUND_SETTINGS_FILE),
-          beatFile 
-          = new File(MetronomeConstants
-                  .SoundSettings.BEAT_SOUND_SETTINGS_FILE),
-          clickFile 
-          = new File(MetronomeConstants
-                  .SoundSettings.CLICK_SOUND_SETTINGS_FILE),
-          tmpChFile 
-          = new File(MetronomeConstants
-                  .SoundSettings.TEMPO_CHANGE_SOUND_SETTINGS_FILE);
     
     if (getSession() != null) {  
       writeMetronomeTypeToFile(readMetronomeType(), metTypeSettingsFile);
@@ -1136,68 +1101,14 @@ public final class SessionHandler implements MetronomeContract.Model {
 
   @Override
   public void readPreviousSessionFromFile() throws IOException {
-    
     //1. read the settings from file, if they exist, and load them to
     //  the session object if it exists.
     //2. if not, load defaults to the session object, if it exists.
 
-    File metTypeSettingsFile 
-            = new File(MetronomeConstants.Session.METRONOME_TYPE_SETTINGS_FILE),
-            regSettingsFile 
-            = new File(MetronomeConstants
-                    .RegularMetronomeSettings.REGULAR_METRONOME_SETTINGS_FILE),
-            gapSettingsFile 
-            = new File(MetronomeConstants
-                    .GapMetronomeSettings.GAP_METRONOME_SETTINGS_FILE),
-            timedSettingsFile 
-            = new File(MetronomeConstants
-                    .TimedMetronomeSettings.TIMED_METRONOME_SETTINGS_FILE),
-            speedSettingsFile 
-            = new File(MetronomeConstants
-                    .SpeedMetronomeSettings.SPEED_METRONOME_SETTINGS_FILE),
-            regPresetsFile 
-            = new File(MetronomeConstants
-                    .RegularMetronomeSettings
-                    .REGULAR_METRONOME_PRESETS_SETTINGS_FILE),
-            gapPresetsFile 
-            = new File(MetronomeConstants
-                    .GapMetronomeSettings.GAP_METRONOME_PRESETS_SETTINGS_FILE),
-            timedPresetsFile 
-            = new File(MetronomeConstants
-                    .TimedMetronomeSettings
-                    .TIMED_METRONOME_PRESETS_SETTINGS_FILE),
-            speedPresetsFile 
-            = new File(MetronomeConstants
-                    .SpeedMetronomeSettings
-                    .SPEED_METRONOME_PRESETS_SETTINGS_FILE),
-            accentFile 
-            = new File(MetronomeConstants
-                    .SoundSettings.ACCENT_SOUND_SETTINGS_FILE),
-            beatFile 
-            = new File(MetronomeConstants
-                    .SoundSettings.BEAT_SOUND_SETTINGS_FILE),
-            clickFile 
-            = new File(MetronomeConstants
-                    .SoundSettings.CLICK_SOUND_SETTINGS_FILE),
-            tmpChFile 
-            = new File(MetronomeConstants
-                    .SoundSettings.TEMPO_CHANGE_SOUND_SETTINGS_FILE);
-    
     if (getSession() != null) {
-      if (!(metTypeSettingsFile.exists() &
-            regSettingsFile.exists() &
-            gapSettingsFile.exists() &
-            timedSettingsFile.exists() &
-            speedSettingsFile.exists() &
-            regPresetsFile.exists() &
-            gapPresetsFile.exists() &
-            timedPresetsFile.exists() &
-            speedPresetsFile.exists() &
-            accentFile.exists() &
-            beatFile.exists() &
-            clickFile.exists() &
-            tmpChFile.exists())) {
+      if (!settingsDir.exists()) {
         setDefaults();
+        settingsDir.mkdirs();
       } else {
         writeMetronomeType(readMetronomeTypeFromFile(metTypeSettingsFile));
         writeMetronomeSettings(MetronomeType.REG, 
@@ -1209,11 +1120,11 @@ public final class SessionHandler implements MetronomeContract.Model {
                                                              gapSettingsFile)
         );
         writeMetronomeSettings(MetronomeType.TIMED, 
-                               readMetronomeSettingsFromFile(MetronomeType.TIMED,
+                              readMetronomeSettingsFromFile(MetronomeType.TIMED,
                                                              timedSettingsFile)
         );
         writeMetronomeSettings(MetronomeType.SPEED, 
-                               readMetronomeSettingsFromFile(MetronomeType.SPEED,
+                              readMetronomeSettingsFromFile(MetronomeType.SPEED,
                                                              speedSettingsFile)
         );
         getSession().setSoundSettings(readSoundSettingsFromFile(accentFile,

@@ -29,6 +29,9 @@ public final class SoundSettings {
   private String clickSound;
   private String tempoChangeSound;
 
+  public SoundSettings() {
+  }
+
   public SoundSettings(String accentSound, String beatSound, String clickSound,
                        String tempoChangeSound) {
     setAccentSound(accentSound);
