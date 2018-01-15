@@ -21,9 +21,11 @@ package genome.metronome.utils;
 import genome.metronome.model.MetronomeSettings;
 import genome.metronome.model.MetronomeType;
 import genome.metronome.model.SoundSettings;
+import genome.metronome.presenter.Metronome;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Observer;
 
 /**
  *
@@ -98,5 +100,7 @@ public final class MetronomeContract {
     void saveMetronomePreset(MetronomeType metType, 
                              String presetName, 
                              HashMap<String, Number> settings);
+    Metronome getMetronome(MetronomeType type);
+    void registerObserver(MetronomeType type, Observer ob);
   }
 }

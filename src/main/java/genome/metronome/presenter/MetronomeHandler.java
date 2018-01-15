@@ -31,6 +31,7 @@ import genome.metronome.utils.MetronomeDependencyInjector;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Observer;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -53,51 +54,51 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
     setModel(model);
   }
 
-  public MetronomeContract.View getView() {
+  private MetronomeContract.View getView() {
     return view;
   }
 
-  public void setView(MetronomeContract.View view) {
+  private void setView(MetronomeContract.View view) {
     this.view = view;
   }
 
-  public MetronomeContract.Model getModel() {
+  private MetronomeContract.Model getModel() {
     return model;
   }
 
-  public void setModel(MetronomeContract.Model model) {
+  private void setModel(MetronomeContract.Model model) {
     this.model = model;
   }
 
-  public RegularMetronome getRegularMetronome() {
+  private RegularMetronome getRegularMetronome() {
     return regularMetronome;
   }
 
-  public void setRegularMetronome(RegularMetronome regularMetronome) {
+  private void setRegularMetronome(RegularMetronome regularMetronome) {
     this.regularMetronome = regularMetronome;
   }
 
-  public GapMetronome getGapMetronome() {
+  private GapMetronome getGapMetronome() {
     return gapMetronome;
   }
 
-  public void setGapMetronome(GapMetronome gapMetronome) {
+  private void setGapMetronome(GapMetronome gapMetronome) {
     this.gapMetronome = gapMetronome;
   }
 
-  public TimedMetronome getTimedMetronome() {
+  private TimedMetronome getTimedMetronome() {
     return timedMetronome;
   }
 
-  public void setTimedMetronome(TimedMetronome timedMetronome) {
+  private void setTimedMetronome(TimedMetronome timedMetronome) {
     this.timedMetronome = timedMetronome;
   }
 
-  public SpeedMetronome getSpeedMetronome() {
+  private SpeedMetronome getSpeedMetronome() {
     return speedMetronome;
   }
 
-  public void setSpeedMetronome(SpeedMetronome speedMetronome) {
+  private void setSpeedMetronome(SpeedMetronome speedMetronome) {
     this.speedMetronome = speedMetronome;
   }
 
@@ -108,29 +109,29 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
         getRegularMetronome().play();
         getModel().writeMetronomeSettings(MetronomeType.REG, 
                                           getRegularMetronome().getSettings());
-        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
-          MetronomeType.REG));
+//        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+//          MetronomeType.REG));
         break;
       case GAP:
         getGapMetronome().play(); 
         getModel().writeMetronomeSettings(MetronomeType.GAP, 
                                           getGapMetronome().getSettings());
-        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
-          MetronomeType.GAP));
+//        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+//          MetronomeType.GAP));
         break;
       case TIMED:
         getTimedMetronome().play(); 
         getModel().writeMetronomeSettings(MetronomeType.TIMED, 
                                           getTimedMetronome().getSettings());
-        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
-          MetronomeType.TIMED));
+//        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+//          MetronomeType.TIMED));
         break;
       case SPEED:
         getSpeedMetronome().play(); 
         getModel().writeMetronomeSettings(MetronomeType.SPEED, 
                                           getSpeedMetronome().getSettings());
-        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
-          MetronomeType.SPEED));
+//        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+//          MetronomeType.SPEED));
         break;
       default: break;
     }
@@ -295,8 +296,8 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
         break;
       default: break;
     }
-    getView().displayMetronomeSettings(getModel().readMetronomeSettings(
-          metType));
+//    getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+//          metType));
   }
 
   @Override
@@ -420,8 +421,8 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
         } 
         break;
     }
-    getView().displayMetronomeSetting(
-      settingKey, getModel().readMetronomeSetting(metType, settingKey));
+//    getView().displayMetronomeSetting(
+//      settingKey, getModel().readMetronomeSetting(metType, settingKey));
   }
 
   @Override
@@ -512,7 +513,7 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
         getSpeedMetronome().bulkSet(presetSettings); break;
       default: break;
     }
-    getView().displayMetronomeSettings(presetSettings);
+//    getView().displayMetronomeSettings(presetSettings);
   }
 
   @Override
@@ -523,6 +524,37 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
     getModel().addMetronomePreset(metType, presetName, preset);
     getView().displayMetronomePreset(presetName, getModel().readMetronomePreset(
                                      metType, presetName));
+  }
+
+  @Override
+  public Metronome getMetronome(MetronomeType type) {
+    switch (type) {
+      case REG:
+        return getRegularMetronome();
+      case GAP:
+        return getGapMetronome();
+      case TIMED:
+        return getTimedMetronome();
+      case SPEED:
+        return getSpeedMetronome();
+      default:
+        return null;
+    }
+  }
+
+  @Override
+  public void registerObserver(MetronomeType type, Observer ob) {
+    switch (type) {
+      case REG:
+        getRegularMetronome().addObserver(ob); break;
+      case GAP:
+        getGapMetronome().addObserver(ob); break;
+      case TIMED:
+        getTimedMetronome().addObserver(ob); break;
+      case SPEED:
+        getSpeedMetronome().addObserver(ob); break;
+      default: break;
+    }
   }
   
   private MetronomeSettings 
