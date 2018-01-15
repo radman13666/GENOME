@@ -109,29 +109,29 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
         getRegularMetronome().play();
         getModel().writeMetronomeSettings(MetronomeType.REG, 
                                           getRegularMetronome().getSettings());
-//        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
-//          MetronomeType.REG));
+        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+          MetronomeType.REG));
         break;
       case GAP:
         getGapMetronome().play(); 
         getModel().writeMetronomeSettings(MetronomeType.GAP, 
                                           getGapMetronome().getSettings());
-//        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
-//          MetronomeType.GAP));
+        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+          MetronomeType.GAP));
         break;
       case TIMED:
         getTimedMetronome().play(); 
         getModel().writeMetronomeSettings(MetronomeType.TIMED, 
                                           getTimedMetronome().getSettings());
-//        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
-//          MetronomeType.TIMED));
+        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+          MetronomeType.TIMED));
         break;
       case SPEED:
         getSpeedMetronome().play(); 
         getModel().writeMetronomeSettings(MetronomeType.SPEED, 
                                           getSpeedMetronome().getSettings());
-//        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
-//          MetronomeType.SPEED));
+        getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+          MetronomeType.SPEED));
         break;
       default: break;
     }
@@ -296,8 +296,8 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
         break;
       default: break;
     }
-//    getView().displayMetronomeSettings(getModel().readMetronomeSettings(
-//          metType));
+    getView().displayMetronomeSettings(getModel().readMetronomeSettings(
+          metType));
   }
 
   @Override
@@ -421,8 +421,8 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
         } 
         break;
     }
-//    getView().displayMetronomeSetting(
-//      settingKey, getModel().readMetronomeSetting(metType, settingKey));
+    getView().displayMetronomeSetting(
+      settingKey, getModel().readMetronomeSetting(metType, settingKey));
   }
 
   @Override
@@ -513,7 +513,7 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
         getSpeedMetronome().bulkSet(presetSettings); break;
       default: break;
     }
-//    getView().displayMetronomeSettings(presetSettings);
+    getView().displayMetronomeSettings(presetSettings);
   }
 
   @Override
