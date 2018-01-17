@@ -18,7 +18,6 @@
  */
 package genome.metronome.utils;
 
-import genome.metronome.model.SessionHandler;
 import genome.metronome.presenter.MetronomeHandler;
 import genome.metronome.presenter.SoundRez;
 
@@ -33,16 +32,11 @@ public final class MetronomeDependencyInjector {
   private MetronomeDependencyInjector() {
   }
   
-  public static MetronomeContract.Model getMetronomeModel() {
-    return SessionHandler.getInstance();
-  }
-  
   public static MetronomeContract.Presenter 
-    getMetronomePresenter(MetronomeContract.View view, 
-                        MetronomeContract.Model model) {
-    if (view != null & model != null) {
+    getMetronomePresenter(MetronomeContract.View view) {
+    if (view != null) {
       if (metronomePresenter == null)
-        metronomePresenter = new MetronomeHandler(view, model);
+        metronomePresenter = new MetronomeHandler(view);
       return metronomePresenter;
     } else return null;
   }

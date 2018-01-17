@@ -136,7 +136,7 @@ public final class SoundRez {
   
   public void releaseResources() {
     if (getLine() != null && getLine().isOpen()) getLine().close();
-    //setLine(null);
+    setLine(null);
   }
 
   public byte[] getAccentSound() {
