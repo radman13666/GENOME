@@ -72,7 +72,7 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     setCreatingTask(
       new CreateTimedClickTrackTask(getTempo(), getMeasure(), getDuration())
     );
-    new Thread(getCreatingTask()).start();
+    executor.execute(getCreatingTask());
   }
 
   @Override
@@ -115,7 +115,8 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     private BigInteger t = BigInteger.ZERO;
     BigInteger durationInBytes;
 
-    public CreateTimedClickTrackTask(float tempo, int measure, int duration) {
+    private CreateTimedClickTrackTask(float tempo, int measure, int duration) {
+      super();
       long period = (long) Math.round(
         (60 / tempo) *
         MetronomeConstants.SoundRez.FRAME_RATE * 
@@ -178,9 +179,18 @@ public final class TimedMetronome extends ConstantTempoMetronome {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
+        if (!isStopped && t.compareTo(durationInBytes) != -1) autoStop();
+        socket.shutdownInput();
       } catch (IOException e) {
         e.printStackTrace();
-      }
+      } finally {
+        try {
+          out.close();
+          socket.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }  
     }
 
     @Override

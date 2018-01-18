@@ -90,7 +90,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
         .VariableTempoMetronome.DEFAULT_END_TEMPO);
     }
     setCreatingTask(new CreateSpeedClickTrackTask());
-    new Thread(getCreatingTask()).start();
+    executor.execute(getCreatingTask());
   }
 
   @Override
@@ -143,7 +143,8 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     private BigInteger tMark = BigInteger.ZERO;
     private long nMark = 0L, aNMark = 0L, cNMark = 0L;
 
-    public CreateSpeedClickTrackTask() {
+    private CreateSpeedClickTrackTask() {
+      super();
       numMeasures = (((int) Math.ceil(
         (getEndTempo() - getStartTempo()) / 
         getTempoIncrement()
@@ -170,9 +171,18 @@ public final class SpeedMetronome extends VariableTempoMetronome {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
+        if (!isStopped && accentIterations >= numMeasures) autoStop();
         currentTempo = 0F;
+        socket.shutdownInput();
       } catch (IOException e) {
         e.printStackTrace();
+      } finally {
+        try {
+          out.close();
+          socket.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
     }
 

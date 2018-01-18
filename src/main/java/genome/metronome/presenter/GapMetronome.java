@@ -36,18 +36,20 @@ public final class GapMetronome extends ConstantTempoMetronome {
   private int gapLengthIncrement;
   private int gapRepetitions;
   private int currentSilentMeasures;
+  private int duration;
 
   public GapMetronome() {
   }
 
   public GapMetronome(int loudMeasures, int silentMeasures,
                       int gapLengthIncrement, int gapRepetitions, float tempo,
-                      int measure, int subDivision) {
+                      int measure, int subDivision, int duration) {
     super(tempo, measure, subDivision);
     setLoudMeasures(loudMeasures);
     setSilentMeasures(silentMeasures);
     setGapLengthIncrement(gapLengthIncrement);
     setGapRepetitions(gapRepetitions);
+    setDuration(duration);
   }
 
   public int getLoudMeasures() {
@@ -103,7 +105,18 @@ public final class GapMetronome extends ConstantTempoMetronome {
     else this.gapRepetitions 
       = MetronomeConstants.GapMetronome.DEFAULT_GAP_REPETITIONS;
   }
+  
+  public int getDuration() {
+    return duration;
+  }
 
+  public void setDuration(int duration) {
+    if (duration >= MetronomeConstants.TimedMetronome.MIN_DURATION && 
+        duration <= MetronomeConstants.TimedMetronome.MAX_DURATION)
+      this.duration = duration;
+    else this.duration = MetronomeConstants.TimedMetronome.DEFAULT_DURATION;
+  }
+  
   public int getCurrentSilentMeasures() {
     return currentSilentMeasures;
   }
@@ -124,10 +137,11 @@ public final class GapMetronome extends ConstantTempoMetronome {
         getMeasure(),
         getLoudMeasures(),
         getSilentMeasures(),
-        getGapLengthIncrement()
+        getGapLengthIncrement(),
+        getDuration()
       )
     );
-    new Thread(getCreatingTask()).start();
+    executor.execute(getCreatingTask());
   }
 
   @Override
@@ -146,6 +160,8 @@ public final class GapMetronome extends ConstantTempoMetronome {
       .MetronomeSettingsKeys.GAP_LENGTH_INCREMENT));
     setGapRepetitions((Integer) settings.get(MetronomeConstants
       .MetronomeSettingsKeys.GAP_REPETITIONS));
+    setDuration((Integer) settings.get(MetronomeConstants
+      .MetronomeSettingsKeys.DURATION));
   }
 
   @Override
@@ -165,6 +181,8 @@ public final class GapMetronome extends ConstantTempoMetronome {
       .GAP_LENGTH_INCREMENT, getGapLengthIncrement());
     settings.put(MetronomeConstants.MetronomeSettingsKeys
       .GAP_REPETITIONS, getGapRepetitions());
+    settings.put(MetronomeConstants.MetronomeSettingsKeys
+      .DURATION, getDuration());
     return settings;
   }
   
@@ -186,12 +204,15 @@ public final class GapMetronome extends ConstantTempoMetronome {
     private BigInteger t = BigInteger.ZERO;
     private BigInteger tMark = BigInteger.ZERO;
     private long nMark = 0L, aNMark = 0L, gNMark = 0L;
-    
-    public CreateGapClickTrackTask(float tempo, 
+    BigInteger durationInBytes;
+
+    private CreateGapClickTrackTask(float tempo, 
                                    int measure, 
                                    int loudMeasures, 
                                    int silentMeasures, 
-                                   int gapLengthIncrement) {      
+                                   int gapLengthIncrement,
+                                   int duration) {
+      super();
       long period = (long) Math.round(
         (60 / tempo) *
         MetronomeConstants.SoundRez.FRAME_RATE *
@@ -226,6 +247,13 @@ public final class GapMetronome extends ConstantTempoMetronome {
       );
       
       gapGraphDutyCycleInBytes = loudMeasuresInBytes;
+      
+      long totalDuration = (long) Math.ceil(periodInBytes * tempo * duration);
+      
+      durationInBytes = BigInteger.valueOf(
+        totalDuration - 
+        (totalDuration % MetronomeConstants.SoundRez.FRAME_SIZE)
+      );
     }
 
     @Override
@@ -242,12 +270,21 @@ public final class GapMetronome extends ConstantTempoMetronome {
         
         //2. continuously create data and write it to the stream until
         //   the thread is stopped.
-        while (!isStopped) {
+        while (!isStopped && t.compareTo(durationInBytes) == -1) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
+        if (!isStopped && t.compareTo(durationInBytes) != -1) autoStop();
+        socket.shutdownInput();
       } catch (IOException e) {
         e.printStackTrace();
+      } finally {
+        try {
+          out.close();
+          socket.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
       }
     }
 
@@ -266,6 +303,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
         
         c++;
         t = t.add(BigInteger.ONE); //t++
+        if (t.compareTo(durationInBytes) == 0) break; // when t == duration
         if (t.remainder(BigInteger.valueOf(periodInBytes)).intValue() == 0) n++;
         if (t.remainder(BigInteger.valueOf(aT)).intValue() == 0) aN++;
         if (t.subtract(tMark)

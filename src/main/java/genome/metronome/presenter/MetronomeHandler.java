@@ -32,7 +32,8 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  *
  * @author William Kibirango <williamkaos.kibirango76@gmail.com>
  */
-public final class MetronomeHandler implements MetronomeContract.Presenter {
+public final class MetronomeHandler implements MetronomeContract.Presenter, 
+                                               Observer {
   
   private MetronomeContract.View view;
   private GapMetronome gapMetronome;
@@ -135,10 +136,13 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
       )))
         getView().displayMessage("Sound files are unprepared.\n");
       
-      //3. create all metronomes
+      //3. create all metronomes and register as an observer
       setGapMetronome(new GapMetronome());
+      getGapMetronome().addObserver(this);
       setTimedMetronome(new TimedMetronome());
+      getTimedMetronome().addObserver(this);
       setSpeedMetronome(new SpeedMetronome());
+      getSpeedMetronome().addObserver(this);
       
     } catch (LineUnavailableException e) {
       if (e.getMessage() != null)
@@ -206,6 +210,18 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
         getSpeedMetronome().addObserver(ob); 
         return getSpeedMetronome();
       default: return null;
+    }
+  }
+
+  @Override
+  public void update(Observable o, Object arg) {
+    if (o instanceof Metronome && 
+        ((String) arg).equals(MetronomeConstants.Metronome.
+          AudioTasks.M_AUTO_STOPPED)) {
+      ((Metronome) o).executor.shutdown();
+      while (((Metronome) o).executor.isTerminated()) {}
+      ((Metronome) o).autoStopped = false;
+//      System.out.println("Tasks terminated...");
     }
   }
 }

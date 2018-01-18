@@ -26,6 +26,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Observable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  *
@@ -38,6 +40,8 @@ public abstract class Metronome extends Observable {
   protected SoundRez soundRez;
   protected WriteAudioTask writingTask;
   protected CreateAudioTask creatingTask;
+  protected ExecutorService executor = Executors.newFixedThreadPool(2);
+  protected volatile boolean autoStopped;
 
   protected Metronome() {
   }
@@ -103,13 +107,21 @@ public abstract class Metronome extends Observable {
   }
   
   public void play() {
+    this.autoStopped = false;
     setWritingTask(new WriteAudioTask());
-    new Thread(getWritingTask()).start();
+    executor.execute(getWritingTask());
   }
   
   public final void stop() {
     getCreatingTask().stop();
-    //getWritingTask().stop();
+    executor.shutdown();
+    while (!executor.isTerminated()) {}
+  }
+  
+  protected void autoStop() {
+    this.autoStopped = true;
+    setChanged();
+    notifyObservers(MetronomeConstants.Metronome.AudioTasks.M_AUTO_STOPPED);
   }
   
   public abstract void bulkSet(HashMap<String, Number> settings);
@@ -153,10 +165,12 @@ public abstract class Metronome extends Observable {
         }
         getSoundRez().getLine().stop();
         getSoundRez().getLine().flush();
+//        System.out.println(Thread.currentThread().getName() + ": stopped...");
       } catch (IOException e) {
         e.printStackTrace();
       } finally {
         try {
+          in.close();
           serverSocket.close();
         } catch (IOException e) {
           e.printStackTrace();
