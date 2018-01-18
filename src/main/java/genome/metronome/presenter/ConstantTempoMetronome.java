@@ -45,8 +45,6 @@ public abstract class ConstantTempoMetronome extends Metronome {
         tempo <= MetronomeConstants.ConstantTempoMetronome.MAX_TEMPO)
       this.tempo = tempo;
     else this.tempo = MetronomeConstants.ConstantTempoMetronome.DEFAULT_TEMPO;
-    setChanged(); 
-    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.TEMPO);
   }
   
 }

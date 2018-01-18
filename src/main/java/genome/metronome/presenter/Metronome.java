@@ -64,8 +64,6 @@ public abstract class Metronome extends Observable {
         this.measure = measure;
       else this.measure = MetronomeConstants.Metronome.COMMON_TIME;
     }
-    setChanged(); 
-    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.MEASURE);
   }
 
   public final int getSubDivision() {
@@ -78,8 +76,6 @@ public abstract class Metronome extends Observable {
          subDivision <= MetronomeConstants.Metronome.MAX_SUB_DIVISION))
       this.subDivision = subDivision;
     else this.subDivision = MetronomeConstants.Metronome.NO_SUB_DIVISION;
-    setChanged(); 
-    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION);
   }
 
   protected final SoundRez getSoundRez() {

@@ -55,8 +55,6 @@ public final class SpeedMetronome extends VariableTempoMetronome {
       this.tempoLength = tempoLength;
     else this.tempoLength 
       = MetronomeConstants.SpeedMetronome.DEFAULT_TEMPO_LENGTH;
-    setChanged(); 
-    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.TEMPO_LENGTH);
   }
 
   public float getTempoIncrement() {
@@ -70,8 +68,6 @@ public final class SpeedMetronome extends VariableTempoMetronome {
       this.tempoIncrement = tempoIncrement;
     else this.tempoIncrement 
       = MetronomeConstants.SpeedMetronome.DEFAULT_TEMPO_INCREMENT;
-    setChanged(); 
-    notifyObservers(MetronomeConstants.MetronomeSettingsKeys.TEMPO_INCREMENT);
   }
 
   public float getCurrentTempo() {
