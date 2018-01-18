@@ -82,7 +82,7 @@ public final class MetronomeHandler implements MetronomeContract.Presenter,
     switch (type) {
       case GAP:
         getGapMetronome().setSoundRez(soundRez);
-        getGapMetronome().play();
+        getGapMetronome().play(); 
         break;
       case TIMED:
         getTimedMetronome().setSoundRez(soundRez);
@@ -172,6 +172,11 @@ public final class MetronomeHandler implements MetronomeContract.Presenter,
   public void clean() {
     //1. release system resources
     MetronomeDependencyInjector.getSoundRez().releaseResources();
+    
+    //2. deregister handler
+    getTimedMetronome().deleteObservers();
+    getGapMetronome().deleteObservers();
+    getSpeedMetronome().deleteObservers();
   }
 
   @Override
@@ -198,7 +203,7 @@ public final class MetronomeHandler implements MetronomeContract.Presenter,
   }
 
   @Override
-  public Observable registerObserver(MetronomeType type, Observer ob) {
+  public Metronome registerObserver(MetronomeType type, Observer ob) {
     switch (type) {
       case GAP:
         getGapMetronome().addObserver(ob); 

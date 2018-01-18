@@ -1,0 +1,241 @@
+/*
+ * Copyright (C) 2018 William Kibirango <williamkaos.kibirango76@gmail.com>
+ *
+ * This file is part of GENOME.
+ *
+ * GENOME is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * GENOME is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with GENOME.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package genome.metronome.view;
+
+import genome.metronome.presenter.GapMetronome;
+import genome.metronome.presenter.MetronomeType;
+import genome.metronome.presenter.SpeedMetronome;
+import genome.metronome.presenter.TimedMetronome;
+import genome.metronome.utils.MetronomeConstants;
+import genome.metronome.utils.MetronomeContract;
+import genome.metronome.utils.MetronomeDependencyInjector;
+import java.util.HashMap;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Scanner;
+
+/**
+ *
+ * @author William Kibirango <williamkaos.kibirango76@gmail.com>
+ */
+public class GenomeCLI implements MetronomeContract.View, Observer {
+
+  private MetronomeContract.Presenter p;
+  private TimedMetronome tM; 
+  private GapMetronome gM; 
+  private SpeedMetronome sM;
+  
+  private static float t = 0F, ti = 0F, st = 0F, et = 0F;
+  private static int lm = 0, sm = 0, gli = 0, gr = 0, m = 0, tl = 0, d = 0;
+  private static final String HELP_MESSAGE = 
+    "Usage: java GenomeCLI [\"<option> <settings>\"... | H | <no args>]\n" + 
+    "\t<option>     --- G, T or S\n" + 
+    "\t<settings>   --- if <option> is G, [lm] [sm] [gli] [gr] [t] [m] [d]\n" +
+    "\t             --- if <option> is T, [d] [t] [m]\n" + 
+    "\t             --- if <option> is S, [tl] [ti] [st] [et] [m]\n" + 
+    "\tH, <no args> --- display this help message and exit";
+
+  @Override
+  public void initialize() {
+    displayMessage("GENOME (cli): Rhythm's inborn");
+    displayMessage("=============================\n");
+    p = MetronomeDependencyInjector.getMetronomePresenter(this);
+    p.initialize();
+    sM = (SpeedMetronome) p.registerObserver(MetronomeType.SPEED, this);
+    tM = (TimedMetronome) p.registerObserver(MetronomeType.TIMED, this);
+    gM = (GapMetronome) p.registerObserver(MetronomeType.GAP, this);
+  }
+
+  @Override
+  public void displayMessage(String message) {
+    if (message.equals("")) System.out.println();
+    else System.out.println(message);
+  }
+
+  @Override
+  public void displayMetronomeSettings(MetronomeType type,
+                                   HashMap<String, Number> metronomeSettings) {
+    switch (type) {
+      case GAP:
+        displayMessage("GAP:");
+        displayMessage("lm: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.LOUD_MEASURES));
+        displayMessage("sm: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.SILENT_MEASURES));
+        displayMessage("gli: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.GAP_LENGTH_INCREMENT));
+        displayMessage("gr: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.GAP_REPETITIONS));
+        displayMessage("t: " + (Float) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.TEMPO));
+        displayMessage("m: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.MEASURE));
+        displayMessage("s: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION));
+        displayMessage("d: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.DURATION));
+        break;
+      case TIMED:
+        displayMessage("TIMED:");
+        displayMessage("t: " + (Float) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.TEMPO));
+        displayMessage("m: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.MEASURE));
+        displayMessage("s: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION));
+        displayMessage("d: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.DURATION));
+        break;
+      case SPEED:
+        displayMessage("SPEED:");
+        displayMessage("tl: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.TEMPO_LENGTH));
+        displayMessage("ti: " + (Float) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.TEMPO_INCREMENT));
+        displayMessage("st: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.START_TEMPO));
+        displayMessage("et: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.END_TEMPO));
+        displayMessage("m: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.MEASURE));
+        displayMessage("s: " + (Integer) metronomeSettings.get(
+          MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION));
+        break;
+      default: break;
+    }
+    displayMessage("");
+  }
+
+  @Override
+  public void clean() {
+    p.clean();
+    p = null;
+    displayMessage("Exiting...");
+    displayMessage("=============================");
+  }
+
+  @Override
+  public void update(Observable o, Object arg) {
+    String updateStr = "UPDATE: ";
+    if (o instanceof TimedMetronome &&
+        o == tM &&
+        ((String) arg).equals(
+            MetronomeConstants.Metronome.AudioTasks.TM_CURRENT_TIME_LEFT)) {
+      updateStr += "TIMED: timeLeft (mins) = " + 
+                   ((TimedMetronome) o).getCurrentTimeLeft() + "\n";
+      displayMessage(updateStr);
+    } else if (o instanceof SpeedMetronome &&
+               o == sM &&
+               ((String) arg).equals(
+                MetronomeConstants.Metronome.AudioTasks.SM_CURRENT_TEMPO)) {
+      updateStr += "SPEED: currentTempo (bpm) = " +
+                   ((SpeedMetronome) o).getCurrentTempo() + "\n";
+      displayMessage(updateStr);
+    } else if (o instanceof GapMetronome &&
+               o == gM &&
+               ((String) arg).equals(
+                MetronomeConstants.Metronome.AudioTasks
+                  .GM_CURRENT_SILENT_MEASURES)) {
+      updateStr += "GAP: lm = " +
+                   ((GapMetronome) o).getLoudMeasures() + " sm = " +
+                   ((GapMetronome) o).getCurrentSilentMeasures() + "\n";
+      displayMessage(updateStr);
+    }
+  }
+  
+  private static boolean isValid(String arg) throws Exception {
+    try (Scanner line = new Scanner(arg);) {
+      String mode = line.next(), regex = "\\s+";
+      
+      switch (mode) {
+        case "G":
+          if (arg.split(regex).length != 8) return false;
+          lm = line.nextInt(); sm = line.nextInt(); gli = line.nextInt();
+          gr = line.nextInt(); t = line.nextFloat(); m = line.nextInt();
+          d = line.nextInt();
+          return true;
+        case "T":
+          if (arg.split(regex).length != 4) return false;
+          d = line.nextInt(); t = line.nextFloat(); m = line.nextInt();
+          return true;
+        case "S":
+          if (arg.split(regex).length != 6) return false;
+          tl = line.nextInt(); ti = line.nextFloat(); st = line.nextFloat();
+          et = line.nextFloat(); m = line.nextInt();
+          return true;
+        default: return false;
+      }
+    }
+  }
+  
+  private void play(char mode) {
+    HashMap<String, Number> settings = new HashMap<>();
+    settings.put(MetronomeConstants.MetronomeSettingsKeys
+          .SUB_DIVISION, MetronomeConstants.Metronome.NO_SUB_DIVISION);
+    
+    switch (mode) {
+      case 'G':
+        settings.put(MetronomeConstants.MetronomeSettingsKeys
+          .LOUD_MEASURES, lm);
+        settings.put(MetronomeConstants.MetronomeSettingsKeys
+          .SILENT_MEASURES, sm);
+        settings.put(MetronomeConstants.MetronomeSettingsKeys
+          .GAP_LENGTH_INCREMENT, gli);
+        settings.put(MetronomeConstants.MetronomeSettingsKeys
+          .GAP_REPETITIONS, gr);
+        settings.put(MetronomeConstants.MetronomeSettingsKeys
+          .TEMPO, t);
+        settings.put(MetronomeConstants.MetronomeSettingsKeys
+          .MEASURE, m);
+        settings.put(MetronomeConstants.MetronomeSettingsKeys
+          .DURATION, d);
+        
+        p.updateMetronomeSettings(MetronomeType.GAP, settings);
+        p.playMetronome(MetronomeType.GAP);
+    }
+  }
+  
+  /**
+   * @param args the command line arguments
+   */
+  public static void main(String[] args) {
+    if (args.length == 0) {
+      System.out.println(HELP_MESSAGE);
+      System.exit(-1);
+    } else {
+      GenomeCLI g = new GenomeCLI();
+      g.initialize();
+      for (String arg : args) {
+        String trimmedArg = arg.trim();
+        try {
+          if (isValid(trimmedArg)) {
+            System.out.println("GOOD ARG: " + arg);
+            //g.play(trimmedArg.charAt(0));
+          } else System.out.println("BAD ARG: " + arg);
+        } catch (Exception e) {
+          System.out.println("BAD ARG: " + arg);
+          System.out.println(HELP_MESSAGE);
+          break;
+        }
+      }
+      g.clean();
+    }
+  }
+  
+}
