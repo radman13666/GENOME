@@ -35,6 +35,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
   private int silentMeasures;
   private int gapLengthIncrement;
   private int gapRepetitions;
+  private int currentSilentMeasures;
 
   public GapMetronome() {
   }
@@ -71,6 +72,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
       this.silentMeasures = silentMeasures;
     else this.silentMeasures 
       = MetronomeConstants.GapMetronome.DEFAULT_SILENT_MEASURES;
+    this.currentSilentMeasures = this.silentMeasures;
   }
 
   public int getGapLengthIncrement() {
@@ -100,6 +102,17 @@ public final class GapMetronome extends ConstantTempoMetronome {
       this.gapRepetitions = gapRepetitions;
     else this.gapRepetitions 
       = MetronomeConstants.GapMetronome.DEFAULT_GAP_REPETITIONS;
+  }
+
+  public int getCurrentSilentMeasures() {
+    return currentSilentMeasures;
+  }
+
+  private void incrementCurrentSilentMeasures(int gapLengthIncrement) {
+    this.currentSilentMeasures += gapLengthIncrement;
+    setChanged();
+    notifyObservers(MetronomeConstants.Metronome.AudioTasks
+      .GM_CURRENT_SILENT_MEASURES);
   }
 
   @Override
@@ -265,6 +278,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
             gapGraphPeriodInBytes = gapGraphPeriodInBytes.add(
               BigInteger.valueOf(gapLengthIncrementInBytes)
             );
+            incrementCurrentSilentMeasures(getGapLengthIncrement());
           }
         }
       }

@@ -32,6 +32,7 @@ import java.util.HashMap;
 public final class TimedMetronome extends ConstantTempoMetronome {
   
   private int duration;
+  private int currentTimeLeft;
 
   public TimedMetronome() {
   }
@@ -51,6 +52,18 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         duration <= MetronomeConstants.TimedMetronome.MAX_DURATION)
       this.duration = duration;
     else this.duration = MetronomeConstants.TimedMetronome.DEFAULT_DURATION;
+    this.currentTimeLeft = this.duration;
+  }
+
+  public int getCurrentTimeLeft() {
+    return currentTimeLeft;
+  }
+
+  private void decrementCurrentTimeLeft(int timePast) {
+    this.currentTimeLeft -= timePast;
+    setChanged();
+    notifyObservers(MetronomeConstants.Metronome.AudioTasks
+      .TM_CURRENT_TIME_LEFT);
   }
 
   @Override
@@ -97,6 +110,7 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     private final boolean accentOn;
     private final long periodInBytes;
     private final long measureInBytes;
+    private final long minuteInBytes;
     private long beatIterations = 0L, accentIterations = 0L;
     private BigInteger t = BigInteger.ZERO;
     BigInteger durationInBytes;
@@ -106,6 +120,11 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         (60 / tempo) *
         MetronomeConstants.SoundRez.FRAME_RATE * 
         MetronomeConstants.SoundRez.FRAME_SIZE
+      );
+      minuteInBytes = (long) Math.round(
+        60 * 
+        MetronomeConstants.SoundRez.FRAME_SIZE * 
+        MetronomeConstants.SoundRez.FRAME_RATE
       );
       
       periodInBytes = period - 
@@ -175,7 +194,14 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         
         c++;
         t = t.add(BigInteger.ONE); //t++
-        if (t.compareTo(durationInBytes) == 0) break; // when t == duration
+        if (t.compareTo(durationInBytes) == 0) { // when t == duration
+          decrementCurrentTimeLeft(getCurrentTimeLeft());
+          break;
+        }
+        if (t.remainder(BigInteger.valueOf(minuteInBytes)).intValue() == 0) {
+          // when a minute passes by while playing
+          decrementCurrentTimeLeft(1);
+        }
         if (t.remainder(BigInteger.valueOf(periodInBytes)).intValue() == 0) n++;
         if (accentOn && t.remainder(BigInteger.valueOf(aT)).intValue() == 0) 
           aN++;
