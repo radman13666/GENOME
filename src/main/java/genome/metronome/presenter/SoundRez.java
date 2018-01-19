@@ -125,13 +125,14 @@ public final class SoundRez {
     }
   }
   
-  public void getResources() throws LineUnavailableException {
+  public boolean getResources() throws LineUnavailableException {
     if (getLine() == null) setLine(
       AudioSystem.getSourceDataLine(MetronomeConstants.DEFAULT_AUDIO_FORMAT)
     );
     if (!(getLine() == null || getLine().isOpen())) 
       getLine().open(MetronomeConstants.DEFAULT_AUDIO_FORMAT/*, 
         MetronomeConstants.Metronome.AudioTasks.SDL_BUFFER_SIZE*/);
+    return getLine() != null && getLine().isOpen();
   }
   
   public void releaseResources() {
@@ -143,7 +144,7 @@ public final class SoundRez {
     return accentSound;
   }
 
-  public void setAccentSound(byte[] accentSound) {
+  private void setAccentSound(byte[] accentSound) {
     this.accentSound = accentSound;
   }
 
@@ -151,7 +152,7 @@ public final class SoundRez {
     return beatSound;
   }
 
-  public void setBeatSound(byte[] beatSound) {
+  private void setBeatSound(byte[] beatSound) {
     this.beatSound = beatSound;
   }
 
@@ -159,7 +160,7 @@ public final class SoundRez {
     return clickSound;
   }
 
-  public void setClickSound(byte[] clickSound) {
+  private void setClickSound(byte[] clickSound) {
     this.clickSound = clickSound;
   }
 
@@ -167,15 +168,15 @@ public final class SoundRez {
     return tempoChangeSound;
   }
 
-  public void setTempoChangeSound(byte[] tempoChangeSound) {
+  private void setTempoChangeSound(byte[] tempoChangeSound) {
     this.tempoChangeSound = tempoChangeSound;
   }
 
-  public SourceDataLine getLine() {
+  public synchronized SourceDataLine getLine() {
     return line;
   }
 
-  public void setLine(SourceDataLine line) {
+  private void setLine(SourceDataLine line) {
     this.line = line;
   }
 }

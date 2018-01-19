@@ -118,7 +118,10 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
     try {
       //1. acquire system resources
       SoundRez soundRez = MetronomeDependencyInjector.getSoundRez();
-      soundRez.getResources();
+      if (!soundRez.getResources()) {
+        getView().displayMessage("Application not supported.");
+        System.exit(-1);
+      }
       
       //2. acquire sounds
       if (!(soundRez.getSoundsFromFiles(
@@ -130,35 +133,28 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
           .DEFAULT_CLICK_SOUND_FILE).getFile(), 
         loader.getResource(MetronomeConstants
           .DEFAULT_TEMPO_CHANGE_SOUND_FILE).getFile()
-      )))
+      ))) {
         getView().displayMessage("Sound files are unprepared.\n");
-      
+        System.exit(-1);
+      }
       //3. create all metronomes and register as an observer
       setGapMetronome(new GapMetronome());
       setTimedMetronome(new TimedMetronome());
       setSpeedMetronome(new SpeedMetronome());
       
     } catch (LineUnavailableException e) {
-      if (e.getMessage() != null)
-        getView().displayMessage(
-          "Required system resources are unavailable. " + 
-          e.getMessage()
-        );
-      else 
-        getView()
-          .displayMessage("Required system resources are unavailable.");
+      getView()
+          .displayMessage("Required system resources are not yet available.");
+      System.exit(-1);
     } catch (IOException e) {
-      if (e.getMessage() != null)
-        getView().displayMessage("I/O Error occured. " + e.getMessage());
-      else getView().displayMessage("I/O Error occured.");
+      getView().displayMessage("I/O Error while getting sounds."); 
+      System.exit(-1);
     } catch (UnsupportedAudioFileException e) {
-      if (e.getMessage() != null)
-        getView().displayMessage(
-          "Sound files specified are unsupported. " + 
-          e.getMessage()
-        );
-      else 
-        getView().displayMessage("Sound files specified are unsupported.");
+      getView().displayMessage("Sound files specified are unsupported.");
+      System.exit(-1);
+    } catch (IllegalArgumentException e) {
+      getView().displayMessage("Application not supported.");
+      System.exit(-1);
     }
   }
 

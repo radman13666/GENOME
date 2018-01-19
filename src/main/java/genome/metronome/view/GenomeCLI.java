@@ -23,6 +23,7 @@ import genome.metronome.utils.MetronomeConstants;
 import genome.metronome.utils.MetronomeContract;
 import genome.metronome.utils.MetronomeDependencyInjector;
 import java.util.HashMap;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 /**
@@ -38,13 +39,34 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
   
   private float t, ti, st, et;
   private int lm, sm, gli, gr, m, tl, d;
+  private static int breakPeriod;
   private static final String HELP_MESSAGE = 
-    "Usage: java GenomeCLI [\"<option> <settings>\"... | H | <no args>]\n" + 
-    "\t<option>     --- G, T or S\n" + 
-    "\t<settings>   --- if <option> is G, [lm] [sm] [gli] [gr] [t] [m] [d]\n" +
-    "\t             --- if <option> is T, [d] [t] [m]\n" + 
-    "\t             --- if <option> is S, [tl] [ti] [st] [et] [m]\n" + 
-    "\tH, <no args> --- display this help message and exit";
+    "Usage: java GenomeCLI [<break period> \"<option> <settings>\"..."
+    + " | H | <no args>]\n\n" + 
+    "  <break period> --- the minutes to pause between metronome playing\n" +
+    "        <option> --- G, T or S\n" + 
+    "      <settings> --- if <option> is G, [lm] [sm] [gli] [gr] [t] [m] [d]\n"+
+    "                 --- if <option> is T, [d] [t] [m]\n" + 
+    "                 --- if <option> is S, [tl] [ti] [st] [et] [m]\n" + 
+    "    H, <no args> --- display this help message and exit\n\n"
+    + "            [lm] --- loud measures\n"
+    + "            [sm] --- silent measures\n"
+    + "           [gli] --- gap length increment\n"
+    + "            [gr] --- gap repetitions\n"
+    + "             [t] --- tempo\n"
+    + "            [st] --- start tempo\n"
+    + "            [et] --- end tempo\n"
+    + "             [m] --- measure\n"
+    + "             [d] --- duration\n"
+    + "            [tl] --- tempo length\n"
+    + "            [ti] --- tempo increment\n\n"
+    + "  Example 1: To play a timed metronome at 170 bpm, common time for "
+    + "5 minutes\n"
+    + "    $ java GenomeCLI 0 \"T 5 170 4\"\n\n"
+    + "  Example 2: To play a series of different metronomes, with 5-minutes "
+    + "break inbetween\n"
+    + "    $ java GenomeCLI 5 \"T 10 120 8\" \"G 4 4 2 4 100 8 10\" "
+    + "\"S 4 5 100 160 8\"\n\n";
 
   @Override
   public void initialize() {
@@ -154,7 +176,7 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
 //    }
 //  }
   
-  private boolean isValid(String arg) throws Exception {
+  private boolean isValid(String arg) throws InputMismatchException {
     try (Scanner line = new Scanner(arg);) {
       String mode = line.next(), regex = "\\s+";
       
@@ -179,7 +201,7 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
     }
   }
   
-  private void play(char mode) {
+  private void play(char mode) throws InterruptedException {
     HashMap<String, Number> settings = new HashMap<>();
     settings.put(MetronomeConstants.MetronomeSettingsKeys
           .SUB_DIVISION, MetronomeConstants.Metronome.NO_SUB_DIVISION);
@@ -204,7 +226,12 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
         displayMessage("==> Playing Gap Metronome...\n");
         p.playMetronome(MetronomeType.GAP);
         p.stopMetronome(MetronomeType.GAP);
-        displayMessage("==> Stopping Gap Metronome...\n");
+        if (breakPeriod == 0) 
+          displayMessage("==> Stopping Gap Metronome...\n");
+        else
+          displayMessage("==> Stopping Gap Metronome...\n" + 
+                       "    Take a " + breakPeriod + "-minute(s) break...\n");
+        Thread.sleep(breakPeriod * 60_000);
         break;
       case 'T':
         settings.put(MetronomeConstants.MetronomeSettingsKeys
@@ -217,7 +244,12 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
         displayMessage("==> Playing Timed Metronome...\n");
         p.playMetronome(MetronomeType.TIMED);
         p.stopMetronome(MetronomeType.TIMED);
-        displayMessage("==> Stopping Timed Metronome...\n");
+        if (breakPeriod == 0) 
+          displayMessage("==> Stopping Timed Metronome...\n");
+        else
+          displayMessage("==> Stopping Timed Metronome...\n" + 
+                       "    Take a " + breakPeriod + "-minute(s) break...\n");
+        Thread.sleep(breakPeriod * 60_000);
         break;
       case 'S':
         settings.put(MetronomeConstants.MetronomeSettingsKeys
@@ -234,7 +266,12 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
         displayMessage("==> Playing Speed Metronome...\n");
         p.playMetronome(MetronomeType.SPEED);
         p.stopMetronome(MetronomeType.SPEED);
-        displayMessage("==> Stopping Speed Metronome...\n");
+        if (breakPeriod == 0) 
+          displayMessage("==> Stopping Speed Metronome...\n");
+        else
+          displayMessage("==> Stopping Speed Metronome...\n" + 
+                       "    Take a " + breakPeriod + "-minute(s) break...\n");
+        Thread.sleep(breakPeriod * 60_000);
         break;
       default: break;
     }
@@ -244,25 +281,39 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
    * @param args the command line arguments
    */
   public static void main(String[] args) {
-    if (args.length == 0 || args[0].equals("H")) {
+    if (args.length <= 1 ||
+        (args.length > 1 && args[0].length() > 1) ||
+        (args.length > 1 && args[0].length() == 1 &&
+         !Character.isDigit((Character) args[0].charAt(0)))) {
       System.out.println(HELP_MESSAGE);
-      System.exit(0);
+      System.exit(-1);
     } else {
-      GenomeCLI g = new GenomeCLI();
-      g.initialize();
-      for (String arg : args) {
-        String trimmedArg = arg.trim();
-        try {
-          if (g.isValid(trimmedArg)) {
-            g.play(trimmedArg.charAt(0));
-          } else g.displayMessage("==> BAD ARG: " + arg + 
-                                    ".\n    Going to next arg...\n");
-        } catch (Exception e) {
-          g.displayMessage("==> BAD ARG: " + arg + 
-                             ".\n    Going to next arg...\n");
+      try {
+        breakPeriod = (Integer.parseInt(args[0]) <= 9 &&
+                    Integer.parseInt(args[0]) >= 0) ? 
+                    Integer.parseInt(args[0]) : 
+                    5;
+        GenomeCLI g = new GenomeCLI();
+        g.initialize();
+        for (int i = 1; i < args.length; i++) {
+          String trimmedArg = args[i].trim();
+          try {
+            if (g.isValid(trimmedArg)) {
+              g.play(trimmedArg.charAt(0));
+            } else g.displayMessage("==> BAD ARG: " + args[i] + 
+                                      ".\n    Going to next arg...\n");
+          } catch (InputMismatchException e) {
+            g.displayMessage("==> BAD ARG: " + args[i] + 
+                               ".\n    Going to next arg...\n");
+          } catch (InterruptedException e) {
+            break;
+          }
         }
+        g.clean();
+      } catch (NumberFormatException e) {
+        System.out.println(HELP_MESSAGE);
+        System.exit(-1);
       }
-      g.clean();
     }
   }
   
