@@ -18,10 +18,8 @@
  */
 package genome.metronome.utils;
 
-import genome.metronome.presenter.Metronome;
 import genome.metronome.presenter.MetronomeType;
 import java.util.HashMap;
-import java.util.Observer;
 
 /**
  *
@@ -47,6 +45,6 @@ public final class MetronomeContract {
     void clean();
     void updateMetronomeSettings(MetronomeType type, 
                                  HashMap<String, Number> settings);
-    Metronome registerObserver(MetronomeType type, Observer ob);
+//    Metronome registerObserver(MetronomeType type, Observer ob);
   }
 }

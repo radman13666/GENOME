@@ -23,8 +23,6 @@ import genome.metronome.utils.MetronomeContract;
 import genome.metronome.utils.MetronomeDependencyInjector;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Observable;
-import java.util.Observer;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -32,8 +30,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  *
  * @author William Kibirango <williamkaos.kibirango76@gmail.com>
  */
-public final class MetronomeHandler implements MetronomeContract.Presenter, 
-                                               Observer {
+public final class MetronomeHandler implements MetronomeContract.Presenter {
   
   private MetronomeContract.View view;
   private GapMetronome gapMetronome;
@@ -82,15 +79,15 @@ public final class MetronomeHandler implements MetronomeContract.Presenter,
     switch (type) {
       case GAP:
         getGapMetronome().setSoundRez(soundRez);
-        getGapMetronome().play(); 
+        getGapMetronome().play();
         break;
       case TIMED:
         getTimedMetronome().setSoundRez(soundRez);
-        getTimedMetronome().play(); 
+        getTimedMetronome().play();
         break;
       case SPEED:
         getSpeedMetronome().setSoundRez(soundRez);
-        getSpeedMetronome().play(); 
+        getSpeedMetronome().play();
         break;
       default: break;
     }
@@ -138,11 +135,8 @@ public final class MetronomeHandler implements MetronomeContract.Presenter,
       
       //3. create all metronomes and register as an observer
       setGapMetronome(new GapMetronome());
-      getGapMetronome().addObserver(this);
       setTimedMetronome(new TimedMetronome());
-      getTimedMetronome().addObserver(this);
       setSpeedMetronome(new SpeedMetronome());
-      getSpeedMetronome().addObserver(this);
       
     } catch (LineUnavailableException e) {
       if (e.getMessage() != null)
@@ -174,9 +168,9 @@ public final class MetronomeHandler implements MetronomeContract.Presenter,
     MetronomeDependencyInjector.getSoundRez().releaseResources();
     
     //2. deregister handler
-    getTimedMetronome().deleteObservers();
-    getGapMetronome().deleteObservers();
-    getSpeedMetronome().deleteObservers();
+//    getTimedMetronome().deleteObservers();
+//    getGapMetronome().deleteObservers();
+//    getSpeedMetronome().deleteObservers();
   }
 
   @Override
@@ -202,31 +196,19 @@ public final class MetronomeHandler implements MetronomeContract.Presenter,
     }
   }
 
-  @Override
-  public Metronome registerObserver(MetronomeType type, Observer ob) {
-    switch (type) {
-      case GAP:
-        getGapMetronome().addObserver(ob); 
-        return getGapMetronome();
-      case TIMED:
-        getTimedMetronome().addObserver(ob); 
-        return getTimedMetronome();
-      case SPEED:
-        getSpeedMetronome().addObserver(ob); 
-        return getSpeedMetronome();
-      default: return null;
-    }
-  }
-
-  @Override
-  public void update(Observable o, Object arg) {
-    if (o instanceof Metronome && 
-        ((String) arg).equals(MetronomeConstants.Metronome.
-          AudioTasks.M_AUTO_STOPPED)) {
-      ((Metronome) o).executor.shutdown();
-      while (((Metronome) o).executor.isTerminated()) {}
-      ((Metronome) o).autoStopped = false;
-//      System.out.println("Tasks terminated...");
-    }
-  }
+//  @Override
+//  public Metronome registerObserver(MetronomeType type, Observer ob) {
+//    switch (type) {
+//      case GAP:
+//        getGapMetronome().addObserver(ob); 
+//        return getGapMetronome();
+//      case TIMED:
+//        getTimedMetronome().addObserver(ob); 
+//        return getTimedMetronome();
+//      case SPEED:
+//        getSpeedMetronome().addObserver(ob); 
+//        return getSpeedMetronome();
+//      default: return null;
+//    }
+//  }
 }

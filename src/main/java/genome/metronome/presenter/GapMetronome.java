@@ -123,9 +123,9 @@ public final class GapMetronome extends ConstantTempoMetronome {
 
   private void incrementCurrentSilentMeasures(int gapLengthIncrement) {
     this.currentSilentMeasures += gapLengthIncrement;
-    setChanged();
-    notifyObservers(MetronomeConstants.Metronome.AudioTasks
-      .GM_CURRENT_SILENT_MEASURES);
+//    setChanged();
+//    notifyObservers(MetronomeConstants.Metronome.AudioTasks
+//      .GM_CURRENT_SILENT_MEASURES);
   }
 
   @Override
@@ -212,7 +212,6 @@ public final class GapMetronome extends ConstantTempoMetronome {
                                    int silentMeasures, 
                                    int gapLengthIncrement,
                                    int duration) {
-      super();
       long period = (long) Math.round(
         (60 / tempo) *
         MetronomeConstants.SoundRez.FRAME_RATE *
@@ -269,12 +268,11 @@ public final class GapMetronome extends ConstantTempoMetronome {
         int numBytesCreated;
         
         //2. continuously create data and write it to the stream until
-        //   the thread is stopped.
-        while (!isStopped && t.compareTo(durationInBytes) == -1) {
+        //   the time elapses.
+        while (t.compareTo(durationInBytes) == -1) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
-        if (!isStopped && t.compareTo(durationInBytes) != -1) autoStop();
         socket.shutdownInput();
       } catch (IOException e) {
         e.printStackTrace();

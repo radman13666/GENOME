@@ -76,8 +76,8 @@ public final class SpeedMetronome extends VariableTempoMetronome {
 
   private void incrementCurrentTempo(float tempoIncrement) {
     this.currentTempo += tempoIncrement;
-    setChanged(); 
-    notifyObservers(MetronomeConstants.Metronome.AudioTasks.SM_CURRENT_TEMPO);
+//    setChanged(); 
+//    notifyObservers(MetronomeConstants.Metronome.AudioTasks.SM_CURRENT_TEMPO);
   }
 
   @Override
@@ -144,7 +144,6 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     private long nMark = 0L, aNMark = 0L, cNMark = 0L;
 
     private CreateSpeedClickTrackTask() {
-      super();
       numMeasures = (((int) Math.ceil(
         (getEndTempo() - getStartTempo()) / 
         getTempoIncrement()
@@ -166,12 +165,11 @@ public final class SpeedMetronome extends VariableTempoMetronome {
         int numBytesCreated;
 
         //2. continuously create data and write it to the stream until
-        //   the thread is stopped or when the actual end tempo is reached.
-        while (!isStopped && accentIterations < numMeasures) {
+        //   the actual end tempo is reached.
+        while (accentIterations < numMeasures) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
-        if (!isStopped && accentIterations >= numMeasures) autoStop();
         currentTempo = 0F;
         socket.shutdownInput();
       } catch (IOException e) {

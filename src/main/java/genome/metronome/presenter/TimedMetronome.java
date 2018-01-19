@@ -61,9 +61,9 @@ public final class TimedMetronome extends ConstantTempoMetronome {
 
   private void decrementCurrentTimeLeft(int timePast) {
     this.currentTimeLeft -= timePast;
-    setChanged();
-    notifyObservers(MetronomeConstants.Metronome.AudioTasks
-      .TM_CURRENT_TIME_LEFT);
+//    setChanged();
+//    notifyObservers(MetronomeConstants.Metronome.AudioTasks
+//      .TM_CURRENT_TIME_LEFT);
   }
 
   @Override
@@ -116,7 +116,6 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     BigInteger durationInBytes;
 
     private CreateTimedClickTrackTask(float tempo, int measure, int duration) {
-      super();
       long period = (long) Math.round(
         (60 / tempo) *
         MetronomeConstants.SoundRez.FRAME_RATE * 
@@ -174,12 +173,11 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         int numBytesCreated;
 
         //2. continuously create data and write it to the stream until
-        //   the thread is stopped or when the time elapses.
-        while (!isStopped && t.compareTo(durationInBytes) == -1) {
+        //   the time elapses.
+        while (t.compareTo(durationInBytes) == -1) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
-        if (!isStopped && t.compareTo(durationInBytes) != -1) autoStop();
         socket.shutdownInput();
       } catch (IOException e) {
         e.printStackTrace();

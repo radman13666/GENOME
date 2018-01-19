@@ -25,7 +25,6 @@ import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.Observable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -33,7 +32,7 @@ import java.util.concurrent.Executors;
  *
  * @author William Kibirango <williamkaos.kibirango76@gmail.com>
  */
-public abstract class Metronome extends Observable {
+public abstract class Metronome /*extends Observable*/ {
   
   protected int measure;
   protected int subDivision;
@@ -41,7 +40,6 @@ public abstract class Metronome extends Observable {
   protected WriteAudioTask writingTask;
   protected CreateAudioTask creatingTask;
   protected ExecutorService executor = Executors.newFixedThreadPool(2);
-  protected volatile boolean autoStopped;
 
   protected Metronome() {
   }
@@ -107,21 +105,13 @@ public abstract class Metronome extends Observable {
   }
   
   public void play() {
-    this.autoStopped = false;
     setWritingTask(new WriteAudioTask());
     executor.execute(getWritingTask());
   }
   
   public final void stop() {
-    getCreatingTask().stop();
     executor.shutdown();
     while (!executor.isTerminated()) {}
-  }
-  
-  protected void autoStop() {
-    this.autoStopped = true;
-    setChanged();
-    notifyObservers(MetronomeConstants.Metronome.AudioTasks.M_AUTO_STOPPED);
   }
   
   public abstract void bulkSet(HashMap<String, Number> settings);
@@ -165,7 +155,6 @@ public abstract class Metronome extends Observable {
         }
         getSoundRez().getLine().stop();
         getSoundRez().getLine().flush();
-//        System.out.println(Thread.currentThread().getName() + ": stopped...");
       } catch (IOException e) {
         e.printStackTrace();
       } finally {
@@ -182,14 +171,8 @@ public abstract class Metronome extends Observable {
   protected abstract class CreateAudioTask implements Runnable {
     //this is the client that generates and sends audio data to the server.
     private int a = 0, b = 0, c = 0, d = 0;
-    protected volatile boolean isStopped;
     
     protected CreateAudioTask() {
-      this.isStopped = false;
-    }
-    
-    protected void stop() {
-      this.isStopped = true;
     }
     
     //the unit-step function
