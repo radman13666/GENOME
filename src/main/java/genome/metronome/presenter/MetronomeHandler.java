@@ -21,6 +21,7 @@ package genome.metronome.presenter;
 import genome.metronome.utils.MetronomeConstants;
 import genome.metronome.utils.MetronomeContract;
 import genome.metronome.utils.MetronomeDependencyInjector;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import javax.sound.sampled.LineUnavailableException;
@@ -114,8 +115,8 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
 
   @Override
   public void initialize() {
-    ClassLoader loader = this.getClass().getClassLoader();
     try {
+      
       //1. acquire system resources
       SoundRez soundRez = MetronomeDependencyInjector.getSoundRez();
       if (!soundRez.getResources()) {
@@ -124,20 +125,55 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
       }
       
       //2. acquire sounds
-      if (!(soundRez.getSoundsFromFiles(
-        loader.getResource(MetronomeConstants
-          .DEFAULT_ACCENT_SOUND_FILE).getFile(),
-        loader.getResource(MetronomeConstants
-          .DEFAULT_BEAT_SOUND_FILE).getFile(), 
-        loader.getResource(MetronomeConstants
-          .DEFAULT_CLICK_SOUND_FILE).getFile(), 
-        loader.getResource(MetronomeConstants
-          .DEFAULT_TEMPO_CHANGE_SOUND_FILE).getFile()
-      ))) {
+      //NB: Class.class.getResourceAsStream(String) loads resources relative to 
+      //    the class. It also provides a way to invoke the appropriate class
+      //    loader for you. Since the input stream returned doesn't support
+      //    mark and reset operations, it needs to be wrapped in one that does
+      //    e.g. a BufferedInputStream.
+      BufferedInputStream abis = new BufferedInputStream(
+        getClass().getResourceAsStream(
+          MetronomeConstants.DEFAULT_ACCENT_SOUND_FILE));
+      BufferedInputStream bbis = new BufferedInputStream(
+        getClass().getResourceAsStream(
+          MetronomeConstants.DEFAULT_BEAT_SOUND_FILE));
+      BufferedInputStream cbis = new BufferedInputStream(
+        getClass().getResourceAsStream(
+          MetronomeConstants.DEFAULT_CLICK_SOUND_FILE));
+      BufferedInputStream tcbis = new BufferedInputStream(
+        getClass().getResourceAsStream(
+          MetronomeConstants.DEFAULT_TEMPO_CHANGE_SOUND_FILE));
+      
+      if (!(soundRez.isValid(abis) ||
+          soundRez.isValid(bbis) ||
+          soundRez.isValid(cbis) ||
+          soundRez.isValid(tcbis))) {
+        getView().displayMessage("Sound files are invalid.\n");
+        System.exit(-1);
+      } else {
+      abis.close(); bbis.close(); cbis.close(); tcbis.close();
+      }
+      
+      BufferedInputStream abis2 = new BufferedInputStream(
+        getClass().getResourceAsStream(
+          MetronomeConstants.DEFAULT_ACCENT_SOUND_FILE));
+      BufferedInputStream bbis2 = new BufferedInputStream(
+        getClass().getResourceAsStream(
+          MetronomeConstants.DEFAULT_BEAT_SOUND_FILE));
+      BufferedInputStream cbis2 = new BufferedInputStream(
+        getClass().getResourceAsStream(
+          MetronomeConstants.DEFAULT_CLICK_SOUND_FILE));
+      BufferedInputStream tcbis2 = new BufferedInputStream(
+        getClass().getResourceAsStream(
+          MetronomeConstants.DEFAULT_TEMPO_CHANGE_SOUND_FILE));
+      
+      if (!(soundRez.getSoundsFromFiles(abis2, bbis2, cbis2, tcbis2))) {
         getView().displayMessage("Sound files are unprepared.\n");
         System.exit(-1);
+      } else {
+      abis2.close(); bbis2.close(); cbis2.close(); tcbis2.close();
       }
-      //3. create all metronomes and register as an observer
+      
+      //3. create all metronomes
       setGapMetronome(new GapMetronome());
       setTimedMetronome(new TimedMetronome());
       setSpeedMetronome(new SpeedMetronome());

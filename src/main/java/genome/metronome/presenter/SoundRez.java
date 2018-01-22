@@ -19,8 +19,8 @@
 package genome.metronome.presenter;
 
 import genome.metronome.utils.MetronomeConstants;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -49,31 +49,30 @@ public final class SoundRez {
     return instance;
   }
   
-  public boolean getSoundFromFile(SoundType type, String soundFile) 
+  public boolean getSoundFromFile(SoundType type, InputStream soundFile) 
     throws IOException, UnsupportedAudioFileException {
-    if (isValid(soundFile)) {
-      switch (type) {
-        case ACCENT:
-          setAccentSound(getAudioData(soundFile)); 
-          return getAccentSound() != null;
-        case BEAT:
-          setBeatSound(getAudioData(soundFile)); 
-          return getBeatSound() != null;
-        case CLICK:
-          setClickSound(getAudioData(soundFile)); 
-          return getClickSound() != null;
-        case TEMPO_CHANGE:
-          setTempoChangeSound(getAudioData(soundFile)); 
-          return getTempoChangeSound() != null;
-        default:
-          return false;
-      }
-    } else return false;
+    switch (type) {
+      case ACCENT:
+        setAccentSound(getAudioData(soundFile)); 
+        return getAccentSound() != null;
+      case BEAT:
+        setBeatSound(getAudioData(soundFile)); 
+        return getBeatSound() != null;
+      case CLICK:
+        setClickSound(getAudioData(soundFile)); 
+        return getClickSound() != null;
+      case TEMPO_CHANGE:
+        setTempoChangeSound(getAudioData(soundFile)); 
+        return getTempoChangeSound() != null;
+      default:
+        return false;
+    }
   }
   
-  public boolean getSoundsFromFiles(String accentFile, String beatFile, 
-                                                  String clickFile, 
-                                                  String tempoChangeFile) 
+  public boolean getSoundsFromFiles(InputStream accentFile, 
+                                    InputStream beatFile, 
+                                    InputStream clickFile, 
+                                    InputStream tempoChangeFile) 
     throws IOException, UnsupportedAudioFileException {
     return getSoundFromFile(SoundType.ACCENT, accentFile) &&
            getSoundFromFile(SoundType.BEAT, beatFile) &&
@@ -81,10 +80,10 @@ public final class SoundRez {
            getSoundFromFile(SoundType.TEMPO_CHANGE, tempoChangeFile);
   }
   
-  public boolean isValid(String soundFile) 
+  public boolean isValid(InputStream soundFile) 
     throws IOException, UnsupportedAudioFileException {
     try (AudioInputStream ais 
-      = AudioSystem.getAudioInputStream(new File(soundFile))) {
+      = AudioSystem.getAudioInputStream(soundFile)) {
       AudioFormat af = ais.getFormat();
       
       float bitRate 
@@ -107,10 +106,10 @@ public final class SoundRez {
     }
   }
   
-  private byte[] getAudioData(String soundFile) 
+  private byte[] getAudioData(InputStream soundFile) 
     throws IOException, UnsupportedAudioFileException {
     try (AudioInputStream ais 
-      = AudioSystem.getAudioInputStream(new File(soundFile))) {
+      = AudioSystem.getAudioInputStream(soundFile)) {
       int numBytesRead, totalBytesRead = 0, 
         bufferSize 
         = (int) (ais.getFormat().getFrameSize() * ais.getFrameLength());
