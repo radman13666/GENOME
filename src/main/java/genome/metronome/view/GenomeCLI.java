@@ -40,6 +40,7 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
   private float t, ti, st, et;
   private int lm, sm, gli, gr, m, tl, d;
   private static int breakPeriod;
+  private static boolean lastOne = false;
   private static final String HELP_MESSAGE = 
     "Usage: GENOME [<break period> \"<option> <settings>\"..."
     + " | H | <no args>]\n\n" + 
@@ -73,7 +74,7 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
   public void initialize() {
     displayMessage(SEPARATOR + 
                    "\nGENOME Copyright (C) 2018 William Kibirango\n" + 
-                   "GENOME (cli): Rhythm's inborn.");
+                   "GENOME (cli): Rhythm's blood.");
     p = MetronomeDependencyInjector.getMetronomePresenter(this);
     p.initialize();
 //    sM = (SpeedMetronome) p.registerObserver(MetronomeType.SPEED, this);
@@ -226,12 +227,16 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
         displayMessage("==> Playing Gap Metronome...\n");
         p.playMetronome(MetronomeType.GAP);
         p.stopMetronome(MetronomeType.GAP);
-        if (breakPeriod == 0) 
+        if (!lastOne) {
+          if (breakPeriod == 0) 
+            displayMessage("==> Stopping Gap Metronome...\n");
+          else
+            displayMessage("==> Stopping Gap Metronome...\n" + 
+                         "    Take a " + breakPeriod + "-minute(s) break...\n");
+          Thread.sleep(breakPeriod * 60_000);
+        } else {
           displayMessage("==> Stopping Gap Metronome...\n");
-        else
-          displayMessage("==> Stopping Gap Metronome...\n" + 
-                       "    Take a " + breakPeriod + "-minute(s) break...\n");
-        Thread.sleep(breakPeriod * 60_000);
+        }
         break;
       case 'T':
         settings.put(MetronomeConstants.MetronomeSettingsKeys
@@ -244,12 +249,16 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
         displayMessage("==> Playing Timed Metronome...\n");
         p.playMetronome(MetronomeType.TIMED);
         p.stopMetronome(MetronomeType.TIMED);
-        if (breakPeriod == 0) 
+        if (!lastOne) {
+          if (breakPeriod == 0) 
+            displayMessage("==> Stopping Timed Metronome...\n");
+          else
+            displayMessage("==> Stopping Timed Metronome...\n" + 
+                         "    Take a " + breakPeriod + "-minute(s) break...\n");
+          Thread.sleep(breakPeriod * 60_000);
+        } else {
           displayMessage("==> Stopping Timed Metronome...\n");
-        else
-          displayMessage("==> Stopping Timed Metronome...\n" + 
-                       "    Take a " + breakPeriod + "-minute(s) break...\n");
-        Thread.sleep(breakPeriod * 60_000);
+        }
         break;
       case 'S':
         settings.put(MetronomeConstants.MetronomeSettingsKeys
@@ -266,12 +275,16 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
         displayMessage("==> Playing Speed Metronome...\n");
         p.playMetronome(MetronomeType.SPEED);
         p.stopMetronome(MetronomeType.SPEED);
-        if (breakPeriod == 0) 
+        if (!lastOne) {
+          if (breakPeriod == 0) 
+            displayMessage("==> Stopping Speed Metronome...\n");
+          else
+            displayMessage("==> Stopping Speed Metronome...\n" + 
+                         "    Take a " + breakPeriod + "-minute(s) break...\n");
+          Thread.sleep(breakPeriod * 60_000);
+        } else {
           displayMessage("==> Stopping Speed Metronome...\n");
-        else
-          displayMessage("==> Stopping Speed Metronome...\n" + 
-                       "    Take a " + breakPeriod + "-minute(s) break...\n");
-        Thread.sleep(breakPeriod * 60_000);
+        }
         break;
       default: break;
     }
@@ -296,6 +309,7 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
         GenomeCLI g = new GenomeCLI();
         g.initialize();
         for (int i = 1; i < args.length; i++) {
+          if (i == (args.length - 1)) lastOne = true;
           String trimmedArg = args[i].trim();
           try {
             if (g.isValid(trimmedArg)) {
