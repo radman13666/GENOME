@@ -72,7 +72,8 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     setCreatingTask(
       new CreateTimedClickTrackTask(getTempo(), getMeasure(), getDuration())
     );
-    executor.execute(getCreatingTask());
+//    executor.execute(getCreatingTask());
+    creatingFuture = executor.submit(getCreatingTask());
   }
 
   @Override

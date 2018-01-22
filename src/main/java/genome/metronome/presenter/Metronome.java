@@ -27,6 +27,7 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  *
@@ -40,6 +41,8 @@ public abstract class Metronome /*extends Observable*/ {
   protected WriteAudioTask writingTask;
   protected CreateAudioTask creatingTask;
   protected ExecutorService executor = Executors.newFixedThreadPool(2);
+  protected Future writingFuture;
+  protected Future creatingFuture;
 
   protected Metronome() {
   }
@@ -106,12 +109,13 @@ public abstract class Metronome /*extends Observable*/ {
   
   public void play() {
     setWritingTask(new WriteAudioTask());
-    executor.execute(getWritingTask());
+//    executor.execute(getWritingTask());
+    writingFuture = executor.submit(getWritingTask());
   }
   
   public final void stop() {
-    executor.shutdown();
-    while (!executor.isTerminated()) {}
+//    executor.shutdown();
+    while (!(creatingFuture.isDone() || writingFuture.isDone())) {}
   }
   
   public abstract void bulkSet(HashMap<String, Number> settings);
@@ -120,6 +124,7 @@ public abstract class Metronome /*extends Observable*/ {
   protected class WriteAudioTask implements Runnable {
     //this is the server for writing audio data to the audio output devices.
     
+    //TODO: find a way of listening to upates when writing audio.
     private ServerSocket serverSocket;
     private Socket clientSocket;
     private BufferedInputStream in;

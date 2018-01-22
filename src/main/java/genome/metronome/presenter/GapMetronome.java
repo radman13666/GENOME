@@ -141,7 +141,8 @@ public final class GapMetronome extends ConstantTempoMetronome {
         getDuration()
       )
     );
-    executor.execute(getCreatingTask());
+//    executor.execute(getCreatingTask());
+    creatingFuture = executor.submit(getCreatingTask());
   }
 
   @Override

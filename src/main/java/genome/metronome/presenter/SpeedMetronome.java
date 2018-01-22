@@ -90,7 +90,8 @@ public final class SpeedMetronome extends VariableTempoMetronome {
         .VariableTempoMetronome.DEFAULT_END_TEMPO);
     }
     setCreatingTask(new CreateSpeedClickTrackTask());
-    executor.execute(getCreatingTask());
+//    executor.execute(getCreatingTask());
+    creatingFuture = executor.submit(getCreatingTask());
   }
 
   @Override

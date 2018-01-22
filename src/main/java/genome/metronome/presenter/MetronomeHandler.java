@@ -203,6 +203,9 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
 //    getTimedMetronome().deleteObservers();
 //    getGapMetronome().deleteObservers();
 //    getSpeedMetronome().deleteObservers();
+    getTimedMetronome().executor.shutdown();
+    getGapMetronome().executor.shutdown();
+    getSpeedMetronome().executor.shutdown();
   }
 
   @Override
