@@ -41,7 +41,7 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
   private int lm, sm, gli, gr, m, tl, d;
   private static int breakPeriod;
   private static final String HELP_MESSAGE = 
-    "Usage: java GenomeCLI [<break period> \"<option> <settings>\"..."
+    "Usage: GENOME [<break period> \"<option> <settings>\"..."
     + " | H | <no args>]\n\n" + 
     "  <break period> --- the minutes to pause between metronome playing\n" +
     "        <option> --- G, T or S\n" + 
@@ -62,16 +62,18 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
     + "            [ti] --- tempo increment\n\n"
     + "  Example 1: To play a timed metronome at 170 bpm, common time for "
     + "5 minutes\n"
-    + "    $ java GenomeCLI 0 \"T 5 170 4\"\n\n"
+    + "    $ GENOME 0 \"T 5 170 4\"\n\n"
     + "  Example 2: To play a series of different metronomes, with 5-minutes "
     + "break inbetween\n"
-    + "    $ java GenomeCLI 5 \"T 10 120 8\" \"G 4 4 2 4 100 8 10\" "
-    + "\"S 4 5 100 160 8\"\n\n";
+    + "    $ GENOME 5 \"T 10 120 8\" \"G 4 4 2 4 100 8 10\" "
+    + "\"S 4 5 100 160 8\"\n\n", SEPARATOR = 
+    "=============================================";
 
   @Override
   public void initialize() {
-    displayMessage("===================================\n" + 
-                   "GENOME (cli): Rhythm's inborn");
+    displayMessage(SEPARATOR + 
+                   "\nGENOME Copyright (C) 2018 William Kibirango\n" + 
+                   "GENOME (cli): Rhythm's inborn.");
     p = MetronomeDependencyInjector.getMetronomePresenter(this);
     p.initialize();
 //    sM = (SpeedMetronome) p.registerObserver(MetronomeType.SPEED, this);
@@ -87,7 +89,7 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
   @Override
   public void displayMetronomeSettings(MetronomeType type,
                                    HashMap<String, Number> metronomeSettings) {
-    displayMessage("===================================\n");
+    displayMessage(SEPARATOR + "\n");
     switch (type) {
       case GAP:
         displayMessage("==> GAP:\n");
@@ -136,15 +138,13 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
         break;
       default: break;
     }
-    displayMessage("\n===================================\n");
+    displayMessage("\n" + SEPARATOR + "\n");
   }
 
   @Override
   public void clean() {
     p.clean();
-    displayMessage("===================================\n" + 
-                   "Done. Exiting...\n" + 
-                   "===================================");
+    displayMessage(SEPARATOR + "\nDone. Exiting...\n" + SEPARATOR);
   }
 
 //  @Override
