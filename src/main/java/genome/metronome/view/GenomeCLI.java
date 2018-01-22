@@ -61,11 +61,11 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
     + "             [d] --- duration\n"
     + "            [tl] --- tempo length\n"
     + "            [ti] --- tempo increment\n\n"
-    + "  Example 1: To play a timed metronome at 170 bpm, common time for "
-    + "5 minutes\n"
+    + "  Example 1: To play a timed metronome at 170 bpm,\n"
+    + "             common time for 5 minutes\n\n"
     + "    $ GENOME 0 \"T 5 170 4\"\n\n"
-    + "  Example 2: To play a series of different metronomes, with 5-minutes "
-    + "break inbetween\n"
+    + "  Example 2: To play a series of different metronomes,\n"
+    + "             with 5-minutes break inbetween\n\n"
     + "    $ GENOME 5 \"T 10 120 8\" \"G 4 4 2 4 100 8 10\" "
     + "\"S 4 5 100 160 8\"\n\n", SEPARATOR = 
     "=============================================";
