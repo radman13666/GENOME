@@ -66,12 +66,14 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
     + "  Example 2: To play a series of different metronomes, with 5-minutes "
     + "break inbetween\n"
     + "    $ GENOME 5 \"T 10 120 8\" \"G 4 4 2 4 100 8 10\" "
-    + "\"S 4 5 100 160 8\"\n\n";
+    + "\"S 4 5 100 160 8\"\n\n", SEPARATOR = 
+    "=============================================";
 
   @Override
   public void initialize() {
-    displayMessage("===================================\n" + 
-                   "GENOME Copyright (C) 2018 William Kibirango\n");
+    displayMessage(SEPARATOR + 
+                   "\nGENOME Copyright (C) 2018 William Kibirango\n" + 
+                   "GENOME (cli): Rhythm's inborn.");
     p = MetronomeDependencyInjector.getMetronomePresenter(this);
     p.initialize();
 //    sM = (SpeedMetronome) p.registerObserver(MetronomeType.SPEED, this);
@@ -87,7 +89,7 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
   @Override
   public void displayMetronomeSettings(MetronomeType type,
                                    HashMap<String, Number> metronomeSettings) {
-    displayMessage("===================================\n");
+    displayMessage(SEPARATOR + "\n");
     switch (type) {
       case GAP:
         displayMessage("==> GAP:\n");
@@ -136,15 +138,13 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
         break;
       default: break;
     }
-    displayMessage("\n===================================\n");
+    displayMessage("\n" + SEPARATOR + "\n");
   }
 
   @Override
   public void clean() {
     p.clean();
-    displayMessage("===================================\n" + 
-                   "Done. Exiting...\n" + 
-                   "===================================");
+    displayMessage(SEPARATOR + "\nDone. Exiting...\n" + SEPARATOR);
   }
 
 //  @Override
