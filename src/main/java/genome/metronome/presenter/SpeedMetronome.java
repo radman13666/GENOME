@@ -19,9 +19,11 @@
 package genome.metronome.presenter;
 
 import genome.metronome.utils.MetronomeConstants;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 
@@ -33,7 +35,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
   
   private int tempoLength;
   private float tempoIncrement;
-  private float currentTempo = 0F;
+  private float currentTempo;
 
   public SpeedMetronome() {
   }
@@ -76,13 +78,14 @@ public final class SpeedMetronome extends VariableTempoMetronome {
 
   private void incrementCurrentTempo(float tempoIncrement) {
     this.currentTempo += tempoIncrement;
-//    setChanged(); 
-//    notifyObservers(MetronomeConstants.Metronome.AudioTasks.SM_CURRENT_TEMPO);
+    setChanged(); 
+    notifyObservers(MetronomeConstants.Metronome.AudioTasks.SM_CURRENT_TEMPO);
   }
 
   @Override
   public void play() {
-    super.play();
+//    super.play();
+    setWritingTask(new WriteSpeedClickTrackTask());
     if (getStartTempo() >= getEndTempo()) {
       setStartTempo(MetronomeConstants
         .VariableTempoMetronome.DEFAULT_START_TEMPO);
@@ -90,6 +93,8 @@ public final class SpeedMetronome extends VariableTempoMetronome {
         .VariableTempoMetronome.DEFAULT_END_TEMPO);
     }
     setCreatingTask(new CreateSpeedClickTrackTask());
+//    executor.execute(getWritingTask());
+    writingFuture = executor.submit(getWritingTask());
 //    executor.execute(getCreatingTask());
     creatingFuture = executor.submit(getCreatingTask());
   }
@@ -128,6 +133,84 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     return settings;
   }
   
+  private final class WriteSpeedClickTrackTask extends WriteAudioTask {
+    
+    private BigInteger totalBytesRead = BigInteger.ZERO, m = BigInteger.ZERO,
+      tMark = BigInteger.ZERO;
+    private long periodInBytes;
+    private long measureInBytes;
+    private long tempoChangePeriodInBytes;
+
+    public WriteSpeedClickTrackTask() {
+      doTempoChange(getStartTempo());
+    }
+    
+    @Override
+    public void run() {
+      try {
+        //1. open the clientSocket for the server and listen for incoming 
+        //   audio data.
+        serverSocket = new ServerSocket(
+          MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
+        clientSocket = serverSocket.accept();
+        in = new BufferedInputStream(clientSocket.getInputStream(), 
+          MetronomeConstants.Metronome.AudioTasks.BIS_BUFFER_SIZE);
+        
+        //2. when the data is received, it is written to the audio devices
+        //   through a buffered audio output stream.
+        buffer 
+          = new byte[MetronomeConstants.Metronome.AudioTasks.WAT_BUFFER_SIZE];
+        int numBytesRead, p, b;
+        
+        getSoundRez().getLine().start();
+        Thread.sleep(1_000); //wait a second for bytes to pile up in stream
+        while ((numBytesRead = in.read(buffer, 0, buffer.length)) != -1) {
+          b = numBytesRead % MetronomeConstants.SoundRez.FRAME_SIZE;
+          p = numBytesRead - b;
+          
+          totalBytesRead = totalBytesRead.add(BigInteger.valueOf(p));
+          m = totalBytesRead.subtract(tMark);
+          if (m.subtract(m.remainder(
+            BigInteger.valueOf(tempoChangePeriodInBytes))).divide(
+              BigInteger.valueOf(tempoChangePeriodInBytes)).intValue() == 1) {
+            tMark = totalBytesRead;
+            doTempoChange(getTempoIncrement());
+          }
+          
+          getSoundRez().getLine().write(buffer, 0, p);
+        }
+        getSoundRez().getLine().stop();
+        getSoundRez().getLine().flush();
+      } catch (IOException | InterruptedException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          in.close();
+          serverSocket.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+    
+    private void doTempoChange(float tempoIncrement) {
+      incrementCurrentTempo(tempoIncrement);
+      
+      long period = (long) Math.round(
+        (60 / getCurrentTempo()) *
+        MetronomeConstants.SoundRez.FRAME_RATE *
+        MetronomeConstants.SoundRez.FRAME_SIZE
+      );
+      
+      periodInBytes = period - 
+                      (period % MetronomeConstants.SoundRez.FRAME_SIZE);
+      
+      measureInBytes = periodInBytes * getMeasure();
+      
+      tempoChangePeriodInBytes = measureInBytes * getTempoLength();
+    }
+  }
+  
   private final class CreateSpeedClickTrackTask extends CreateAudioTask {
     
     private Socket socket;
@@ -143,6 +226,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     private BigInteger t = BigInteger.ZERO;
     private BigInteger tMark = BigInteger.ZERO;
     private long nMark = 0L, aNMark = 0L, cNMark = 0L;
+    private float mCurrentTempo;
 
     private CreateSpeedClickTrackTask() {
       numMeasures = (((int) Math.ceil(
@@ -171,7 +255,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
-        currentTempo = 0F;
+//        currentTempo = 0F;
         socket.shutdownInput();
       } catch (IOException e) {
         e.printStackTrace();
@@ -237,10 +321,11 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     }
     
     private void doTempoChange(float tempoIncrement) {
-      incrementCurrentTempo(tempoIncrement);
+//      incrementCurrentTempo(tempoIncrement);
+      mCurrentTempo += tempoIncrement;
       
       long period = (long) Math.round(
-        (60 / getCurrentTempo()) *
+        (60 / mCurrentTempo) *
         MetronomeConstants.SoundRez.FRAME_RATE *
         MetronomeConstants.SoundRez.FRAME_SIZE
       );

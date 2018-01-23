@@ -19,9 +19,11 @@
 package genome.metronome.presenter;
 
 import genome.metronome.utils.MetronomeConstants;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 
@@ -123,14 +125,23 @@ public final class GapMetronome extends ConstantTempoMetronome {
 
   private void incrementCurrentSilentMeasures(int gapLengthIncrement) {
     this.currentSilentMeasures += gapLengthIncrement;
-//    setChanged();
-//    notifyObservers(MetronomeConstants.Metronome.AudioTasks
-//      .GM_CURRENT_SILENT_MEASURES);
+    setChanged();
+    notifyObservers(MetronomeConstants.Metronome.AudioTasks
+      .GM_CURRENT_SILENT_MEASURES);
   }
 
   @Override
   public void play() {
-    super.play();
+//    super.play();
+    setWritingTask(
+      new WriteGapClickTrackTask(
+        getTempo(),
+        getMeasure(),
+        getLoudMeasures(),
+        getSilentMeasures(),
+        getGapLengthIncrement()
+      )
+    );
     setCreatingTask(
       new CreateGapClickTrackTask(
         getTempo(),
@@ -141,6 +152,8 @@ public final class GapMetronome extends ConstantTempoMetronome {
         getDuration()
       )
     );
+//    executor.execute(getWritingTask());
+    writingFuture = executor.submit(getWritingTask());
 //    executor.execute(getCreatingTask());
     creatingFuture = executor.submit(getCreatingTask());
   }
@@ -185,6 +198,96 @@ public final class GapMetronome extends ConstantTempoMetronome {
     settings.put(MetronomeConstants.MetronomeSettingsKeys
       .DURATION, getDuration());
     return settings;
+  }
+  
+  private final class WriteGapClickTrackTask extends WriteAudioTask {
+    
+    private BigInteger totalBytesRead = BigInteger.ZERO, 
+      tMark = BigInteger.ZERO, m = BigInteger.ZERO, gapGraphPeriodInBytes;
+    private final long gapLengthIncrementInBytes;
+    private final long periodInBytes;
+    private final long measureInBytes;
+    private final long loudMeasuresInBytes;
+    private final long silentMeasuresInBytes;
+
+    private WriteGapClickTrackTask(float tempo, 
+                                   int measure, 
+                                   int loudMeasures, 
+                                   int silentMeasures, 
+                                   int gapLengthIncrement) {
+      long period = (long) Math.round(
+        (60 / tempo) *
+        MetronomeConstants.SoundRez.FRAME_RATE *
+        MetronomeConstants.SoundRez.FRAME_SIZE
+      );
+      
+      periodInBytes 
+        = period - (period % MetronomeConstants.SoundRez.FRAME_SIZE);
+      
+      measureInBytes = periodInBytes * measure;      
+      loudMeasuresInBytes = measureInBytes * loudMeasures;
+      silentMeasuresInBytes = measureInBytes * silentMeasures;
+      gapLengthIncrementInBytes = measureInBytes * gapLengthIncrement;
+      
+      gapGraphPeriodInBytes = BigInteger.valueOf(
+        loudMeasuresInBytes + silentMeasuresInBytes
+      );
+    }
+    
+    @Override
+    public void run() {
+      try {
+        //1. open the clientSocket for the server and listen for incoming 
+        //   audio data.
+        serverSocket = new ServerSocket(
+          MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
+        clientSocket = serverSocket.accept();
+        in = new BufferedInputStream(clientSocket.getInputStream(), 
+          MetronomeConstants.Metronome.AudioTasks.BIS_BUFFER_SIZE);
+        
+        //2. when the data is received, it is written to the audio devices
+        //   through a buffered audio output stream.
+        buffer 
+          = new byte[MetronomeConstants.Metronome.AudioTasks.WAT_BUFFER_SIZE];
+        int numBytesRead, p, b;
+        
+        getSoundRez().getLine().start();
+        Thread.sleep(1_000); //wait a second for bytes to pile up in stream
+        while ((numBytesRead = in.read(buffer, 0, buffer.length)) != -1) {
+          b = numBytesRead % MetronomeConstants.SoundRez.FRAME_SIZE;
+          p = numBytesRead - b;
+          
+          totalBytesRead = totalBytesRead.add(BigInteger.valueOf(p));
+          m = totalBytesRead.subtract(tMark);
+          if (getGapRepetitions() != 
+                MetronomeConstants.GapMetronome.INFINITE_GAP_REPETITIONS &&
+              getGapLengthIncrement() != 
+              MetronomeConstants.GapMetronome.NO_GAP_LENGTH_INCREMENT &&
+              m.subtract(m.remainder(gapGraphPeriodInBytes))
+                .divide(gapGraphPeriodInBytes).intValue() == 
+              getGapRepetitions()) {
+            tMark = totalBytesRead;
+            gapGraphPeriodInBytes 
+              = gapGraphPeriodInBytes.add(
+                BigInteger.valueOf(gapLengthIncrementInBytes));
+            incrementCurrentSilentMeasures(getGapLengthIncrement());
+          }
+          
+          getSoundRez().getLine().write(buffer, 0, p);
+        }
+        getSoundRez().getLine().stop();
+        getSoundRez().getLine().flush();
+      } catch (IOException | InterruptedException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          in.close();
+          serverSocket.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
   }
   
   private final class CreateGapClickTrackTask extends CreateAudioTask {
@@ -315,7 +418,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
             gapGraphPeriodInBytes = gapGraphPeriodInBytes.add(
               BigInteger.valueOf(gapLengthIncrementInBytes)
             );
-            incrementCurrentSilentMeasures(getGapLengthIncrement());
+//            incrementCurrentSilentMeasures(getGapLengthIncrement());
           }
         }
       }

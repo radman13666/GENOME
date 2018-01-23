@@ -19,9 +19,11 @@
 package genome.metronome.presenter;
 
 import genome.metronome.utils.MetronomeConstants;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 
@@ -61,17 +63,20 @@ public final class TimedMetronome extends ConstantTempoMetronome {
 
   private void decrementCurrentTimeLeft(int timePast) {
     this.currentTimeLeft -= timePast;
-//    setChanged();
-//    notifyObservers(MetronomeConstants.Metronome.AudioTasks
-//      .TM_CURRENT_TIME_LEFT);
+    setChanged();
+    notifyObservers(MetronomeConstants.Metronome.AudioTasks
+      .TM_CURRENT_TIME_LEFT);
   }
 
   @Override
   public void play() {
-    super.play();
+//    super.play();
+    setWritingTask(new WriteTimedClickTrackTask());
     setCreatingTask(
       new CreateTimedClickTrackTask(getTempo(), getMeasure(), getDuration())
     );
+//    executor.execute(getWritingTask());
+    writingFuture = executor.submit(getWritingTask());
 //    executor.execute(getCreatingTask());
     creatingFuture = executor.submit(getCreatingTask());
   }
@@ -102,6 +107,67 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     return settings;
   }
   
+  private final class WriteTimedClickTrackTask extends WriteAudioTask {
+    
+    private BigInteger totalBytesRead = BigInteger.ZERO;
+    private int timePast = 0;
+    private long minuteInBytes;
+    
+    @Override
+    public void run() {
+      try {
+        //1. open the clientSocket for the server and listen for incoming 
+        //   audio data.
+        serverSocket = new ServerSocket(
+          MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
+        clientSocket = serverSocket.accept();
+        in = new BufferedInputStream(clientSocket.getInputStream(), 
+          MetronomeConstants.Metronome.AudioTasks.BIS_BUFFER_SIZE);
+        
+        //2. when the data is received, it is written to the audio devices
+        //   through a buffered audio output stream.
+        buffer 
+          = new byte[MetronomeConstants.Metronome.AudioTasks.WAT_BUFFER_SIZE];
+        minuteInBytes = (long) Math.round(
+          60 * 
+          MetronomeConstants.SoundRez.FRAME_SIZE * 
+          MetronomeConstants.SoundRez.FRAME_RATE
+        );
+        int numBytesRead, p, b;
+        
+        getSoundRez().getLine().start();
+        Thread.sleep(1_000); //wait a second for bytes to pile up in stream
+        while ((numBytesRead = in.read(buffer, 0, buffer.length)) != -1) {
+          b = numBytesRead % MetronomeConstants.SoundRez.FRAME_SIZE;
+          p = numBytesRead - b;
+          
+          totalBytesRead = totalBytesRead.add(BigInteger.valueOf(p));
+          if (totalBytesRead.subtract(totalBytesRead.remainder(
+              BigInteger.valueOf(minuteInBytes))).divide(
+                BigInteger.valueOf(minuteInBytes)).intValue() == 
+              (timePast + 1)) {
+            timePast++;
+            decrementCurrentTimeLeft(1);
+          }
+          
+          getSoundRez().getLine().write(buffer, 0, p);
+        }
+        decrementCurrentTimeLeft(getCurrentTimeLeft());
+        getSoundRez().getLine().stop();
+        getSoundRez().getLine().flush();
+      } catch (IOException | InterruptedException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          in.close();
+          serverSocket.close();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+  
   private final class CreateTimedClickTrackTask extends CreateAudioTask {
     
     private Socket socket;
@@ -111,7 +177,7 @@ public final class TimedMetronome extends ConstantTempoMetronome {
     private final boolean accentOn;
     private final long periodInBytes;
     private final long measureInBytes;
-    private final long minuteInBytes;
+//    private final long minuteInBytes;
     private long beatIterations = 0L, accentIterations = 0L;
     private BigInteger t = BigInteger.ZERO;
     BigInteger durationInBytes;
@@ -122,11 +188,11 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         MetronomeConstants.SoundRez.FRAME_RATE * 
         MetronomeConstants.SoundRez.FRAME_SIZE
       );
-      minuteInBytes = (long) Math.round(
-        60 * 
-        MetronomeConstants.SoundRez.FRAME_SIZE * 
-        MetronomeConstants.SoundRez.FRAME_RATE
-      );
+//      minuteInBytes = (long) Math.round(
+//        60 * 
+//        MetronomeConstants.SoundRez.FRAME_SIZE * 
+//        MetronomeConstants.SoundRez.FRAME_RATE
+//      );
       
       periodInBytes = period - 
                       (period % MetronomeConstants.SoundRez.FRAME_SIZE);
@@ -204,13 +270,13 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         c++;
         t = t.add(BigInteger.ONE); //t++
         if (t.compareTo(durationInBytes) == 0) { // when t == duration
-          decrementCurrentTimeLeft(getCurrentTimeLeft());
+//          decrementCurrentTimeLeft(getCurrentTimeLeft());
           break;
         }
-        if (t.remainder(BigInteger.valueOf(minuteInBytes)).intValue() == 0) {
-          // when a minute passes by while playing
-          decrementCurrentTimeLeft(1);
-        }
+//        if (t.remainder(BigInteger.valueOf(minuteInBytes)).intValue() == 0) {
+//          // when a minute passes by while playing
+//          decrementCurrentTimeLeft(1);
+//        }
         if (t.remainder(BigInteger.valueOf(periodInBytes)).intValue() == 0) n++;
         if (accentOn && t.remainder(BigInteger.valueOf(aT)).intValue() == 0) 
           aN++;

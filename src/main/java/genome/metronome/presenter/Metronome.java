@@ -20,11 +20,11 @@ package genome.metronome.presenter;
 
 import genome.metronome.utils.MetronomeConstants;
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Observable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -33,7 +33,7 @@ import java.util.concurrent.Future;
  *
  * @author William Kibirango <williamkaos.kibirango76@gmail.com>
  */
-public abstract class Metronome /*extends Observable*/ {
+public abstract class Metronome extends Observable {
   
   protected int measure;
   protected int subDivision;
@@ -107,11 +107,7 @@ public abstract class Metronome /*extends Observable*/ {
     this.creatingTask = creatingTask;
   }
   
-  public void play() {
-    setWritingTask(new WriteAudioTask());
-//    executor.execute(getWritingTask());
-    writingFuture = executor.submit(getWritingTask());
-  }
+  public abstract void play();
   
   public final void stop() {
 //    executor.shutdown();
@@ -121,54 +117,16 @@ public abstract class Metronome /*extends Observable*/ {
   public abstract void bulkSet(HashMap<String, Number> settings);
   public abstract HashMap<String, Number> getSettings();
   
-  protected class WriteAudioTask implements Runnable {
+  protected abstract class WriteAudioTask implements Runnable {
     //this is the server for writing audio data to the audio output devices.
     
     //TODO: find a way of listening to upates when writing audio.
-    private ServerSocket serverSocket;
-    private Socket clientSocket;
-    private BufferedInputStream in;
-    private byte[] buffer;
+    protected ServerSocket serverSocket;
+    protected Socket clientSocket;
+    protected BufferedInputStream in;
+    protected byte[] buffer;
 
     protected WriteAudioTask() {
-    }
-
-    @Override
-    public void run() {
-      try {
-        //1. open the clientSocket for the server and listen for incoming 
-        //   audio data.
-        serverSocket = new ServerSocket(
-          MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
-        clientSocket = serverSocket.accept();
-        in = new BufferedInputStream(clientSocket.getInputStream(), 
-          MetronomeConstants.Metronome.AudioTasks.BIS_BUFFER_SIZE);
-        
-        //2. when the data is received, it is written to the audio devices
-        //   through a buffered audio output stream.
-        buffer 
-          = new byte[MetronomeConstants.Metronome.AudioTasks.WAT_BUFFER_SIZE];
-        int numBytesRead, p, b;
-        
-        getSoundRez().getLine().start();
-        Thread.sleep(1_000); //wait a second for bytes to pile up in stream
-        while ((numBytesRead = in.read(buffer, 0, buffer.length)) != -1) {
-          b = numBytesRead % MetronomeConstants.SoundRez.FRAME_SIZE;
-          p = numBytesRead - b;
-          getSoundRez().getLine().write(buffer, 0, p);
-        }
-        getSoundRez().getLine().stop();
-        getSoundRez().getLine().flush();
-      } catch (IOException | InterruptedException e) {
-        e.printStackTrace();
-      } finally {
-        try {
-          in.close();
-          serverSocket.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
     }
   }
   
