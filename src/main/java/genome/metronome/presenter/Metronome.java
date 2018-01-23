@@ -151,16 +151,15 @@ public abstract class Metronome /*extends Observable*/ {
         int numBytesRead, p, b;
         
         getSoundRez().getLine().start();
+        Thread.sleep(1_000); //wait a second for bytes to pile up in stream
         while ((numBytesRead = in.read(buffer, 0, buffer.length)) != -1) {
-          //TODO: find a way to always write an integral number of sample frames
-          //      to the SDL
           b = numBytesRead % MetronomeConstants.SoundRez.FRAME_SIZE;
           p = numBytesRead - b;
           getSoundRez().getLine().write(buffer, 0, p);
         }
         getSoundRez().getLine().stop();
         getSoundRez().getLine().flush();
-      } catch (IOException e) {
+      } catch (IOException | InterruptedException e) {
         e.printStackTrace();
       } finally {
         try {
