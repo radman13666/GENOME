@@ -29,6 +29,7 @@ public abstract class ConstantTempoMetronome extends Metronome {
   protected float tempo;
 
   protected ConstantTempoMetronome() {
+    super();
   }
 
   public ConstantTempoMetronome(float tempo, int measure, int subDivision) {
