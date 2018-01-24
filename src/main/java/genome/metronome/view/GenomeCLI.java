@@ -18,24 +18,29 @@
  */
 package genome.metronome.view;
 
+import genome.metronome.presenter.GapMetronome;
 import genome.metronome.presenter.MetronomeType;
+import genome.metronome.presenter.SpeedMetronome;
+import genome.metronome.presenter.TimedMetronome;
 import genome.metronome.utils.MetronomeConstants;
 import genome.metronome.utils.MetronomeContract;
 import genome.metronome.utils.MetronomeDependencyInjector;
 import java.util.HashMap;
 import java.util.InputMismatchException;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Scanner;
 
 /**
  *
  * @author William Kibirango <williamkaos.kibirango76@gmail.com>
  */
-public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
+public class GenomeCLI implements MetronomeContract.View, Observer {
 
   private MetronomeContract.Presenter p;
-//  private TimedMetronome tM; 
-//  private GapMetronome gM; 
-//  private SpeedMetronome sM;
+  private TimedMetronome tM; 
+  private GapMetronome gM; 
+  private SpeedMetronome sM;
   
   private float t, ti, st, et;
   private int lm, sm, gli, gr, m, tl, d;
@@ -77,9 +82,9 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
                    "GENOME (cli): Rhythm's blood.");
     p = MetronomeDependencyInjector.getMetronomePresenter(this);
     p.initialize();
-//    sM = (SpeedMetronome) p.registerObserver(MetronomeType.SPEED, this);
-//    tM = (TimedMetronome) p.registerObserver(MetronomeType.TIMED, this);
-//    gM = (GapMetronome) p.registerObserver(MetronomeType.GAP, this);
+    sM = (SpeedMetronome) p.registerObserver(MetronomeType.SPEED, this);
+    tM = (TimedMetronome) p.registerObserver(MetronomeType.TIMED, this);
+    gM = (GapMetronome) p.registerObserver(MetronomeType.GAP, this);
   }
 
   @Override
@@ -106,8 +111,8 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
           MetronomeConstants.MetronomeSettingsKeys.TEMPO));
         displayMessage("m: " + (Integer) metronomeSettings.get(
           MetronomeConstants.MetronomeSettingsKeys.MEASURE));
-        displayMessage("s: " + (Integer) metronomeSettings.get(
-          MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION));
+//        displayMessage("s: " + (Integer) metronomeSettings.get(
+//          MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION));
         displayMessage("d: " + (Integer) metronomeSettings.get(
           MetronomeConstants.MetronomeSettingsKeys.DURATION));
         break;
@@ -117,8 +122,8 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
           MetronomeConstants.MetronomeSettingsKeys.TEMPO));
         displayMessage("m: " + (Integer) metronomeSettings.get(
           MetronomeConstants.MetronomeSettingsKeys.MEASURE));
-        displayMessage("s: " + (Integer) metronomeSettings.get(
-          MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION));
+//        displayMessage("s: " + (Integer) metronomeSettings.get(
+//          MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION));
         displayMessage("d: " + (Integer) metronomeSettings.get(
           MetronomeConstants.MetronomeSettingsKeys.DURATION));
         break;
@@ -134,8 +139,8 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
           MetronomeConstants.MetronomeSettingsKeys.END_TEMPO));
         displayMessage("m: " + (Integer) metronomeSettings.get(
           MetronomeConstants.MetronomeSettingsKeys.MEASURE));
-        displayMessage("s: " + (Integer) metronomeSettings.get(
-          MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION));
+//        displayMessage("s: " + (Integer) metronomeSettings.get(
+//          MetronomeConstants.MetronomeSettingsKeys.SUB_DIVISION));
         break;
       default: break;
     }
@@ -148,34 +153,34 @@ public class GenomeCLI implements MetronomeContract.View/*, Observer*/ {
     displayMessage(SEPARATOR + "\nDone. Exiting...\n" + SEPARATOR);
   }
 
-//  @Override
-//  public void update(Observable o, Object arg) {
-//    String updateStr = "==> UPDATE: ";
-//    if (o instanceof TimedMetronome &&
-//        o == tM &&
-//        ((String) arg).equals(
-//            MetronomeConstants.Metronome.AudioTasks.TM_CURRENT_TIME_LEFT)) {
-//      updateStr += "TIMED: timeLeft (mins) = " + 
-//                   ((TimedMetronome) o).getCurrentTimeLeft() + "\n";
-//      displayMessage(updateStr);
-//    } else if (o instanceof SpeedMetronome &&
-//               o == sM &&
-//               ((String) arg).equals(
-//                MetronomeConstants.Metronome.AudioTasks.SM_CURRENT_TEMPO)) {
-//      updateStr += "SPEED: currentTempo (bpm) = " +
-//                   ((SpeedMetronome) o).getCurrentTempo() + "\n";
-//      displayMessage(updateStr);
-//    } else if (o instanceof GapMetronome &&
-//               o == gM &&
-//               ((String) arg).equals(
-//                MetronomeConstants.Metronome.AudioTasks
-//                  .GM_CURRENT_SILENT_MEASURES)) {
-//      updateStr += "GAP: lm = " +
-//                   ((GapMetronome) o).getLoudMeasures() + " sm = " +
-//                   ((GapMetronome) o).getCurrentSilentMeasures() + "\n";
-//      displayMessage(updateStr);
-//    }
-//  }
+  @Override
+  public void update(Observable o, Object arg) {
+    String updateStr = "==> UPDATE: ";
+    if (o instanceof TimedMetronome &&
+        o == tM &&
+        ((String) arg).equals(
+            MetronomeConstants.Metronome.AudioTasks.TM_CURRENT_TIME_LEFT)) {
+      updateStr += "TIMED: timeLeft (mins) = " + 
+                   ((TimedMetronome) o).getCurrentTimeLeft() + "\n";
+      displayMessage(updateStr);
+    } else if (o instanceof SpeedMetronome &&
+               o == sM &&
+               ((String) arg).equals(
+                MetronomeConstants.Metronome.AudioTasks.SM_CURRENT_TEMPO)) {
+      updateStr += "SPEED: currentTempo (bpm) = " +
+                   ((SpeedMetronome) o).getCurrentTempo() + "\n";
+      displayMessage(updateStr);
+    } else if (o instanceof GapMetronome &&
+               o == gM &&
+               ((String) arg).equals(
+                MetronomeConstants.Metronome.AudioTasks
+                  .GM_CURRENT_SILENT_MEASURES)) {
+      updateStr += "GAP: lm = " +
+                   ((GapMetronome) o).getLoudMeasures() + ", sm = " +
+                   ((GapMetronome) o).getCurrentSilentMeasures() + "\n";
+      displayMessage(updateStr);
+    }
+  }
   
   private boolean isValid(String arg) throws InputMismatchException {
     try (Scanner line = new Scanner(arg);) {
