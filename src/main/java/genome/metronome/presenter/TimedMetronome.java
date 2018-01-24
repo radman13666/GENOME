@@ -21,6 +21,8 @@ package genome.metronome.presenter;
 import genome.metronome.utils.MetronomeConstants;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ServerSocket;
@@ -123,6 +125,7 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         clientSocket = serverSocket.accept();
         in = new BufferedInputStream(clientSocket.getInputStream(), 
           MetronomeConstants.Metronome.AudioTasks.BIS_BUFFER_SIZE);
+        out = new DataOutputStream(clientSocket.getOutputStream());
         
         //2. when the data is received, it is written to the audio devices
         //   through a buffered audio output stream.
@@ -147,7 +150,14 @@ public final class TimedMetronome extends ConstantTempoMetronome {
                 BigInteger.valueOf(minuteInBytes)).intValue() == 
               (timePast + 1)) {
             timePast++;
-            decrementCurrentTimeLeft(1);
+            if (timePast == getDuration()) {
+              out.writeInt(MetronomeConstants.Metronome
+                .AudioTasks.CAT_STOP_SIGNAL); break;
+            } else {
+              decrementCurrentTimeLeft(1); 
+              out.writeInt(MetronomeConstants.Metronome
+                .AudioTasks.CAT_CONTINUE_SIGNAL);
+            }
           }
           
           getSoundRez().getLine().write(buffer, 0, p);
@@ -155,11 +165,13 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         decrementCurrentTimeLeft(getCurrentTimeLeft());
         getSoundRez().getLine().stop();
         getSoundRez().getLine().flush();
+        clientSocket.shutdownInput();
       } catch (IOException | InterruptedException e) {
         e.printStackTrace();
       } finally {
         try {
           in.close();
+          out.close();
           serverSocket.close();
         } catch (IOException e) {
           e.printStackTrace();
@@ -170,9 +182,6 @@ public final class TimedMetronome extends ConstantTempoMetronome {
   
   private final class CreateTimedClickTrackTask extends CreateAudioTask {
     
-    private Socket socket;
-    private BufferedOutputStream out;
-    private byte[] buffer;
     private long periodDutyCycleInBytes;
     private final boolean accentOn;
     private final long periodInBytes;
@@ -235,22 +244,25 @@ public final class TimedMetronome extends ConstantTempoMetronome {
           MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
         out = new BufferedOutputStream(socket.getOutputStream(), 
           MetronomeConstants.Metronome.AudioTasks.BOS_BUFFER_SIZE);
+        in = new DataInputStream(socket.getInputStream());
         buffer 
           = new byte[MetronomeConstants.Metronome.AudioTasks.CAT_BUFFER_SIZE];
         int numBytesCreated;
 
         //2. continuously create data and write it to the stream until
         //   the time elapses.
-        while (t.compareTo(durationInBytes) == -1) {
+        while (t.compareTo(durationInBytes) == -1 || 
+               in.readInt() != MetronomeConstants.Metronome
+               .AudioTasks.CAT_STOP_SIGNAL) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
-        socket.shutdownInput();
       } catch (IOException e) {
         e.printStackTrace();
       } finally {
         try {
           out.close();
+          in.close();
           socket.close();
         } catch (IOException e) {
           e.printStackTrace();
@@ -269,10 +281,10 @@ public final class TimedMetronome extends ConstantTempoMetronome {
         
         c++;
         t = t.add(BigInteger.ONE); //t++
-        if (t.compareTo(durationInBytes) == 0) { // when t == duration
-//          decrementCurrentTimeLeft(getCurrentTimeLeft());
-          break;
-        }
+//        if (t.compareTo(durationInBytes) == 0) { // when t == duration
+////          decrementCurrentTimeLeft(getCurrentTimeLeft());
+//          break;
+//        }
 //        if (t.remainder(BigInteger.valueOf(minuteInBytes)).intValue() == 0) {
 //          // when a minute passes by while playing
 //          decrementCurrentTimeLeft(1);

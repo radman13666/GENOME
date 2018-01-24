@@ -21,6 +21,8 @@ package genome.metronome.presenter;
 import genome.metronome.utils.MetronomeConstants;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ServerSocket;
@@ -140,9 +142,14 @@ public final class SpeedMetronome extends VariableTempoMetronome {
     private long periodInBytes;
     private long measureInBytes;
     private long tempoChangePeriodInBytes;
+    private final int numTempoIncrements;
 
     public WriteSpeedClickTrackTask() {
       doTempoChange(getStartTempo());
+      numTempoIncrements = (int) Math.ceil(
+        (getEndTempo() - getStartTempo()) / 
+        getTempoIncrement()
+      );
     }
     
     @Override
@@ -155,12 +162,13 @@ public final class SpeedMetronome extends VariableTempoMetronome {
         clientSocket = serverSocket.accept();
         in = new BufferedInputStream(clientSocket.getInputStream(), 
           MetronomeConstants.Metronome.AudioTasks.BIS_BUFFER_SIZE);
+        out = new DataOutputStream(clientSocket.getOutputStream());
         
         //2. when the data is received, it is written to the audio devices
         //   through a buffered audio output stream.
         buffer 
           = new byte[MetronomeConstants.Metronome.AudioTasks.WAT_BUFFER_SIZE];
-        int numBytesRead, p, b;
+        int numBytesRead, p, b, N = 0;
         
         getSoundRez().getLine().start();
         Thread.sleep(1_000); //wait a second for bytes to pile up in stream
@@ -173,19 +181,32 @@ public final class SpeedMetronome extends VariableTempoMetronome {
           if (m.subtract(m.remainder(
             BigInteger.valueOf(tempoChangePeriodInBytes))).divide(
               BigInteger.valueOf(tempoChangePeriodInBytes)).intValue() == 1) {
-            tMark = totalBytesRead;
-            doTempoChange(getTempoIncrement());
+            N++;
+            if (N > numTempoIncrements) {
+              out.writeInt(MetronomeConstants.Metronome
+                .AudioTasks.CAT_STOP_SIGNAL); break;
+            } else {
+              tMark = totalBytesRead;
+              doTempoChange(getTempoIncrement());
+              out.writeInt(MetronomeConstants.Metronome
+                .AudioTasks.CAT_CONTINUE_SIGNAL);
+            }
+          } else {
+            out.writeInt(MetronomeConstants.Metronome
+                .AudioTasks.CAT_CONTINUE_SIGNAL);
           }
           
           getSoundRez().getLine().write(buffer, 0, p);
         }
         getSoundRez().getLine().stop();
         getSoundRez().getLine().flush();
+        clientSocket.shutdownInput();
       } catch (IOException | InterruptedException e) {
         e.printStackTrace();
       } finally {
         try {
           in.close();
+          out.close();
           serverSocket.close();
         } catch (IOException e) {
           e.printStackTrace();
@@ -213,9 +234,6 @@ public final class SpeedMetronome extends VariableTempoMetronome {
   
   private final class CreateSpeedClickTrackTask extends CreateAudioTask {
     
-    private Socket socket;
-    private BufferedOutputStream out;
-    private byte[] buffer;
     private long periodInBytes;
     private long measureInBytes;
     private long tempoChangePeriodInBytes;
@@ -245,23 +263,27 @@ public final class SpeedMetronome extends VariableTempoMetronome {
           MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
         out = new BufferedOutputStream(socket.getOutputStream(), 
           MetronomeConstants.Metronome.AudioTasks.BOS_BUFFER_SIZE);
+        in = new DataInputStream(socket.getInputStream());
         buffer 
           = new byte[MetronomeConstants.Metronome.AudioTasks.CAT_BUFFER_SIZE];
         int numBytesCreated;
 
         //2. continuously create data and write it to the stream until
         //   the actual end tempo is reached.
-        while (accentIterations < numMeasures) {
+        while (accentIterations < numMeasures ||
+          in.readInt() != MetronomeConstants.Metronome
+          .AudioTasks.CAT_STOP_SIGNAL) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
 //        currentTempo = 0F;
-        socket.shutdownInput();
+//        socket.shutdownInput();
       } catch (IOException e) {
         e.printStackTrace();
       } finally {
         try {
           out.close();
+          in.close();
           socket.close();
         } catch (IOException e) {
           e.printStackTrace();
@@ -290,7 +312,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
         if (t.subtract(tMark)
              .remainder(BigInteger.valueOf(measureInBytes)).intValue() == 0) 
           aN++;
-        if (aN == numMeasures) break;
+//        if (aN == numMeasures) break;
         if (t.subtract(tMark)
              .remainder(BigInteger.valueOf(tempoChangePeriodInBytes))
              .intValue() == 0) {

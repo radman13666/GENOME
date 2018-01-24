@@ -114,6 +114,8 @@ public final class MetronomeConstants {
       public static final int BIS_BUFFER_SIZE = UNIT_BUFFER_SIZE * 160;
       public static final int WAT_BUFFER_SIZE = UNIT_BUFFER_SIZE * 16;
       //public static final int SDL_BUFFER_SIZE = UNIT_BUFFER_SIZE * 160;
+      public static final int CAT_STOP_SIGNAL = 9;
+      public static final int CAT_CONTINUE_SIGNAL = 6;
       
       private AudioTasks() {
       }

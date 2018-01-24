@@ -20,6 +20,9 @@ package genome.metronome.presenter;
 
 import genome.metronome.utils.MetronomeConstants;
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -124,6 +127,7 @@ public abstract class Metronome extends Observable {
     protected ServerSocket serverSocket;
     protected Socket clientSocket;
     protected BufferedInputStream in;
+    protected DataOutputStream out;
     protected byte[] buffer;
 
     protected WriteAudioTask() {
@@ -133,6 +137,10 @@ public abstract class Metronome extends Observable {
   protected abstract class CreateAudioTask implements Runnable {
     //this is the client that generates and sends audio data to the server.
     private int a = 0, b = 0, c = 0, d = 0;
+    protected Socket socket;
+    protected BufferedOutputStream out;
+    protected DataInputStream in;
+    protected byte[] buffer;
     
     protected CreateAudioTask() {
     }

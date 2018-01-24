@@ -21,6 +21,8 @@ package genome.metronome.presenter;
 import genome.metronome.utils.MetronomeConstants;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ServerSocket;
@@ -209,6 +211,8 @@ public final class GapMetronome extends ConstantTempoMetronome {
     private final long measureInBytes;
     private final long loudMeasuresInBytes;
     private final long silentMeasuresInBytes;
+    private final long minuteInBytes;
+    private int timePast = 0;
 
     private WriteGapClickTrackTask(float tempo, 
                                    int measure, 
@@ -220,7 +224,11 @@ public final class GapMetronome extends ConstantTempoMetronome {
         MetronomeConstants.SoundRez.FRAME_RATE *
         MetronomeConstants.SoundRez.FRAME_SIZE
       );
-      
+      minuteInBytes = (long) Math.round(
+          60 * 
+          MetronomeConstants.SoundRez.FRAME_SIZE * 
+          MetronomeConstants.SoundRez.FRAME_RATE
+      );
       periodInBytes 
         = period - (period % MetronomeConstants.SoundRez.FRAME_SIZE);
       
@@ -244,6 +252,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
         clientSocket = serverSocket.accept();
         in = new BufferedInputStream(clientSocket.getInputStream(), 
           MetronomeConstants.Metronome.AudioTasks.BIS_BUFFER_SIZE);
+        out = new DataOutputStream(clientSocket.getOutputStream());
         
         //2. when the data is received, it is written to the audio devices
         //   through a buffered audio output stream.
@@ -259,6 +268,19 @@ public final class GapMetronome extends ConstantTempoMetronome {
           
           totalBytesRead = totalBytesRead.add(BigInteger.valueOf(p));
           m = totalBytesRead.subtract(tMark);
+          if (totalBytesRead.subtract(totalBytesRead.remainder(
+              BigInteger.valueOf(minuteInBytes))).divide(
+                BigInteger.valueOf(minuteInBytes)).intValue() == 
+              (timePast + 1)) {
+            timePast++;
+            if (timePast == getDuration()) {
+              out.writeInt(MetronomeConstants.Metronome
+                .AudioTasks.CAT_STOP_SIGNAL); break;
+            } else {
+              out.writeInt(MetronomeConstants.Metronome
+                .AudioTasks.CAT_CONTINUE_SIGNAL);
+            }
+          }
           if (getGapRepetitions() != 
                 MetronomeConstants.GapMetronome.INFINITE_GAP_REPETITIONS &&
               getGapLengthIncrement() != 
@@ -272,16 +294,18 @@ public final class GapMetronome extends ConstantTempoMetronome {
                 BigInteger.valueOf(gapLengthIncrementInBytes));
             incrementCurrentSilentMeasures(getGapLengthIncrement());
           }
-          
+
           getSoundRez().getLine().write(buffer, 0, p);
         }
         getSoundRez().getLine().stop();
         getSoundRez().getLine().flush();
+        clientSocket.shutdownInput();
       } catch (IOException | InterruptedException e) {
         e.printStackTrace();
       } finally {
         try {
           in.close();
+          out.close();
           serverSocket.close();
         } catch (IOException e) {
           e.printStackTrace();
@@ -292,9 +316,6 @@ public final class GapMetronome extends ConstantTempoMetronome {
   
   private final class CreateGapClickTrackTask extends CreateAudioTask {
     
-    private Socket socket;
-    private BufferedOutputStream out;
-    private byte[] buffer;
     private final long periodInBytes;
     private long periodDutyCycleInBytes;
     private final long measureInBytes;
@@ -367,22 +388,25 @@ public final class GapMetronome extends ConstantTempoMetronome {
           MetronomeConstants.Metronome.AudioTasks.SERVER_PORT);
         out = new BufferedOutputStream(socket.getOutputStream(), 
           MetronomeConstants.Metronome.AudioTasks.BOS_BUFFER_SIZE);
+        in = new DataInputStream(socket.getInputStream());
         buffer 
           = new byte[MetronomeConstants.Metronome.AudioTasks.CAT_BUFFER_SIZE];
         int numBytesCreated;
         
         //2. continuously create data and write it to the stream until
         //   the time elapses.
-        while (t.compareTo(durationInBytes) == -1) {
+        while (t.compareTo(durationInBytes) == -1 || 
+               in.readInt() != MetronomeConstants.Metronome
+               .AudioTasks.CAT_STOP_SIGNAL) {
           numBytesCreated = create(buffer);
           out.write(buffer, 0, numBytesCreated);
         }
-        socket.shutdownInput();
       } catch (IOException e) {
         e.printStackTrace();
       } finally {
         try {
           out.close();
+          in.close();
           socket.close();
         } catch (IOException e) {
           e.printStackTrace();
