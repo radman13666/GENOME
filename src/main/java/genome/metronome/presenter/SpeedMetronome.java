@@ -40,6 +40,7 @@ public final class SpeedMetronome extends VariableTempoMetronome {
   private float currentTempo;
 
   public SpeedMetronome() {
+    super();
   }
 
   public SpeedMetronome(int tempoLength, float tempoIncrement, float startTempo,

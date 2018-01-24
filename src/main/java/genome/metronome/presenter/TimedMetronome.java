@@ -39,6 +39,7 @@ public final class TimedMetronome extends ConstantTempoMetronome {
   private int currentTimeLeft;
 
   public TimedMetronome() {
+    super();
   }
 
   public TimedMetronome(int duration, float tempo, int measure, 

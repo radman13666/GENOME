@@ -43,6 +43,7 @@ public final class GapMetronome extends ConstantTempoMetronome {
   private int duration;
 
   public GapMetronome() {
+    super();
   }
 
   public GapMetronome(int loudMeasures, int silentMeasures,

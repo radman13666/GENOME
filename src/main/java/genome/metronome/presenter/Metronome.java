@@ -43,14 +43,16 @@ public abstract class Metronome extends Observable {
   protected SoundRez soundRez;
   protected WriteAudioTask writingTask;
   protected CreateAudioTask creatingTask;
-  protected ExecutorService executor = Executors.newFixedThreadPool(2);
+  protected ExecutorService executor;
   protected Future writingFuture;
   protected Future creatingFuture;
 
   protected Metronome() {
+    executor = Executors.newFixedThreadPool(2);
   }
 
   protected Metronome(int measure, int subDivision) {
+    this();
     setMeasure(measure);
     setSubDivision(subDivision);
   }
