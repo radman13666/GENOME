@@ -30,6 +30,7 @@ public abstract class VariableTempoMetronome extends Metronome {
   protected float endTempo;
 
   protected VariableTempoMetronome() {
+    super();
   }
 
   public VariableTempoMetronome(float startTempo, float endTempo, int measure,

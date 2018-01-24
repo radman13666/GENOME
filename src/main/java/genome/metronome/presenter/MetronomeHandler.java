@@ -24,6 +24,7 @@ import genome.metronome.utils.MetronomeDependencyInjector;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Observer;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
@@ -199,10 +200,12 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
     //1. release system resources
     MetronomeDependencyInjector.getSoundRez().releaseResources();
     
-    //2. deregister handler
-//    getTimedMetronome().deleteObservers();
-//    getGapMetronome().deleteObservers();
-//    getSpeedMetronome().deleteObservers();
+    //2. deregister any observers
+    getTimedMetronome().deleteObservers();
+    getGapMetronome().deleteObservers();
+    getSpeedMetronome().deleteObservers();
+    
+    //3. shutdown thread executors
     getTimedMetronome().executor.shutdown();
     getGapMetronome().executor.shutdown();
     getSpeedMetronome().executor.shutdown();
@@ -231,19 +234,19 @@ public final class MetronomeHandler implements MetronomeContract.Presenter {
     }
   }
 
-//  @Override
-//  public Metronome registerObserver(MetronomeType type, Observer ob) {
-//    switch (type) {
-//      case GAP:
-//        getGapMetronome().addObserver(ob); 
-//        return getGapMetronome();
-//      case TIMED:
-//        getTimedMetronome().addObserver(ob); 
-//        return getTimedMetronome();
-//      case SPEED:
-//        getSpeedMetronome().addObserver(ob); 
-//        return getSpeedMetronome();
-//      default: return null;
-//    }
-//  }
+  @Override
+  public Metronome registerObserver(MetronomeType type, Observer ob) {
+    switch (type) {
+      case GAP:
+        getGapMetronome().addObserver(ob); 
+        return getGapMetronome();
+      case TIMED:
+        getTimedMetronome().addObserver(ob); 
+        return getTimedMetronome();
+      case SPEED:
+        getSpeedMetronome().addObserver(ob); 
+        return getSpeedMetronome();
+      default: return null;
+    }
+  }
 }
