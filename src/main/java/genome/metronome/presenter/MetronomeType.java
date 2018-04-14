@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with GENOME.  If not, see <http://www.gnu.org/licenses/>.
  */
-package genome.metronome.model;
+package genome.metronome.presenter;
 
 /**
  *
  * @author William Kibirango <williamkaos.kibirango76@gmail.com>
  */
 public enum MetronomeType {
-  REG, GAP, TIMED, SPEED
+  GAP, TIMED, SPEED
 }

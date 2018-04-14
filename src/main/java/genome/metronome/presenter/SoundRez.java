@@ -18,7 +18,15 @@
  */
 package genome.metronome.presenter;
 
+import genome.metronome.utils.MetronomeConstants;
+import java.io.IOException;
+import java.io.InputStream;
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 /**
  *
@@ -41,41 +49,101 @@ public final class SoundRez {
     return instance;
   }
   
-  public static void destroyInstance() {
-    instance = null;
+  public boolean getSoundFromFile(SoundType type, InputStream soundFile) 
+    throws IOException, UnsupportedAudioFileException {
+    switch (type) {
+      case ACCENT:
+        setAccentSound(getAudioData(soundFile)); 
+        return getAccentSound() != null;
+      case BEAT:
+        setBeatSound(getAudioData(soundFile)); 
+        return getBeatSound() != null;
+      case CLICK:
+        setClickSound(getAudioData(soundFile)); 
+        return getClickSound() != null;
+      case TEMPO_CHANGE:
+        setTempoChangeSound(getAudioData(soundFile)); 
+        return getTempoChangeSound() != null;
+      default:
+        return false;
+    }
   }
   
-  public boolean prepareSound(String soundFile) {
-    return false;
+  public boolean getSoundsFromFiles(InputStream accentFile, 
+                                    InputStream beatFile, 
+                                    InputStream clickFile, 
+                                    InputStream tempoChangeFile) 
+    throws IOException, UnsupportedAudioFileException {
+    return getSoundFromFile(SoundType.ACCENT, accentFile) &&
+           getSoundFromFile(SoundType.BEAT, beatFile) &&
+           getSoundFromFile(SoundType.CLICK, clickFile) && 
+           getSoundFromFile(SoundType.TEMPO_CHANGE, tempoChangeFile);
   }
   
-  public boolean prepareSounds(String accentFile, String beatFile, 
-                                                  String clickFile, 
-                                                  String tempoChangeFile) {
-    return false;
+  public boolean isValid(InputStream soundFile) 
+    throws IOException, UnsupportedAudioFileException {
+    try (AudioInputStream ais 
+      = AudioSystem.getAudioInputStream(soundFile)) {
+      AudioFormat af = ais.getFormat();
+      
+      float bitRate 
+        = af.getSampleRate() * af.getSampleSizeInBits() * af.getChannels();
+      long numBits = ais.getFrameLength() * af.getFrameSize() * 8;
+      float duration = numBits / bitRate;
+      
+      return af.getChannels() == MetronomeConstants.SoundRez.NUM_CHANNELS &&
+             !af.isBigEndian() && 
+             af.getEncoding() == MetronomeConstants.ENCODING &&
+             af.getFrameSize() == MetronomeConstants.SoundRez.FRAME_SIZE &&
+             af.getSampleSizeInBits() == MetronomeConstants.SoundRez.SAMPLE_SIZE 
+             && Math.abs(af.getFrameRate() - 
+                      MetronomeConstants.SoundRez.FRAME_RATE) < 
+             MetronomeConstants.FLOAT_ERROR_BOUND &&
+             Math.abs(af.getSampleRate() - 
+                      MetronomeConstants.SoundRez.SAMPLE_RATE) < 
+             MetronomeConstants.FLOAT_ERROR_BOUND &&
+             duration < MetronomeConstants.SoundRez.DURATION;
+    }
   }
   
-  public boolean isValid(String soundFile) {
-    return false;
+  private byte[] getAudioData(InputStream soundFile) 
+    throws IOException, UnsupportedAudioFileException {
+    try (AudioInputStream ais 
+      = AudioSystem.getAudioInputStream(soundFile)) {
+      int numBytesRead, totalBytesRead = 0, 
+        bufferSize 
+        = (int) (ais.getFormat().getFrameSize() * ais.getFrameLength());
+      byte[] data = new byte[bufferSize];
+      
+      while ((numBytesRead = ais.read(data)) != -1) {
+        totalBytesRead += numBytesRead;
+      }
+      
+      if (totalBytesRead <= bufferSize) return data;
+      else return null;
+    }
   }
   
-  private byte[] getAudioData(String soundFile) {
-    return null;
-  }
-  
-  public void getResources() {
-    
+  public boolean getResources() throws LineUnavailableException {
+    if (getLine() == null) setLine(
+      AudioSystem.getSourceDataLine(MetronomeConstants.DEFAULT_AUDIO_FORMAT)
+    );
+    if (!(getLine() == null || getLine().isOpen())) 
+      getLine().open(MetronomeConstants.DEFAULT_AUDIO_FORMAT/*, 
+        MetronomeConstants.Metronome.AudioTasks.SDL_BUFFER_SIZE*/);
+    return getLine() != null && getLine().isOpen();
   }
   
   public void releaseResources() {
-    
+    if (getLine() != null && getLine().isOpen()) getLine().close();
+    setLine(null);
   }
 
   public byte[] getAccentSound() {
     return accentSound;
   }
 
-  public void setAccentSound(byte[] accentSound) {
+  private void setAccentSound(byte[] accentSound) {
     this.accentSound = accentSound;
   }
 
@@ -83,7 +151,7 @@ public final class SoundRez {
     return beatSound;
   }
 
-  public void setBeatSound(byte[] beatSound) {
+  private void setBeatSound(byte[] beatSound) {
     this.beatSound = beatSound;
   }
 
@@ -91,7 +159,7 @@ public final class SoundRez {
     return clickSound;
   }
 
-  public void setClickSound(byte[] clickSound) {
+  private void setClickSound(byte[] clickSound) {
     this.clickSound = clickSound;
   }
 
@@ -99,15 +167,15 @@ public final class SoundRez {
     return tempoChangeSound;
   }
 
-  public void setTempoChangeSound(byte[] tempoChangeSound) {
+  private void setTempoChangeSound(byte[] tempoChangeSound) {
     this.tempoChangeSound = tempoChangeSound;
   }
 
-  public SourceDataLine getLine() {
+  public synchronized SourceDataLine getLine() {
     return line;
   }
 
-  public void setLine(SourceDataLine line) {
+  private void setLine(SourceDataLine line) {
     this.line = line;
   }
 }

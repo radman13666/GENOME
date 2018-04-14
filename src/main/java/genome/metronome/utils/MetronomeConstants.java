@@ -18,7 +18,7 @@
  */
 package genome.metronome.utils;
 
-import javax.sound.sampled.AudioFileFormat;
+import java.io.File;
 import javax.sound.sampled.AudioFormat;
 
 /**
@@ -27,10 +27,57 @@ import javax.sound.sampled.AudioFormat;
  */
 public final class MetronomeConstants {
   
-  public static final AudioFormat.Encoding ENCODING = AudioFormat
-            .Encoding.PCM_SIGNED;
-  public static final AudioFileFormat.Type TYPE = AudioFileFormat.Type.WAVE;
-
+  public static final AudioFormat.Encoding ENCODING 
+    = AudioFormat.Encoding.PCM_SIGNED;
+  public static final AudioFormat DEFAULT_AUDIO_FORMAT 
+    = new AudioFormat(ENCODING, SoundRez.SAMPLE_RATE, SoundRez.SAMPLE_SIZE, 
+        SoundRez.NUM_CHANNELS, SoundRez.FRAME_SIZE, SoundRez.FRAME_RATE, 
+        SoundRez.BIG_ENDIAN
+    );
+  public static final double FLOAT_ERROR_BOUND = 1E-7;
+  
+  //File paths
+  public static final String FSEP = File.separator;
+  public static final String SOUNDS_DIR = "sounds";
+  public static final String BASE_CONFIG_DIR 
+    = System.getProperty("user.home") + FSEP + ".genome";
+  public static final String SETTINGS_DIR 
+    = BASE_CONFIG_DIR + FSEP + "settings";
+  public static final String DEFAULT_ACCENT_SOUND_FILE 
+    = SOUNDS_DIR + FSEP + "accent.wav";
+  public static final String DEFAULT_BEAT_SOUND_FILE 
+    = SOUNDS_DIR + FSEP + "beat.wav";
+  public static final String DEFAULT_CLICK_SOUND_FILE 
+    = SOUNDS_DIR + FSEP + "click.wav";
+  public static final String DEFAULT_TEMPO_CHANGE_SOUND_FILE 
+    = SOUNDS_DIR + FSEP + "tempoChange.wav";
+  public static final String METRONOME_TYPE_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "metronomeType.txt";
+  public static final String GAP_METRONOME_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "gapMetronome.txt";
+  public static final String GAP_METRONOME_PRESETS_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "gapMetronomePresets.txt";
+  public static final String TIMED_METRONOME_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "timedMetronome.txt";
+  public static final String TIMED_METRONOME_PRESETS_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "timedMetronomePresets.txt";
+  public static final String SPEED_METRONOME_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "speedMetronome.txt";
+  public static final String SPEED_METRONOME_PRESETS_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "speedMetronomePresets.txt";
+  public static final String REGULAR_METRONOME_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "regularMetronome.txt";
+  public static final String REGULAR_METRONOME_PRESETS_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "regularMetronomePresets.txt";
+  public static final String ACCENT_SOUND_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "accent.txt";
+  public static final String BEAT_SOUND_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "beat.txt";
+  public static final String CLICK_SOUND_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "click.txt";
+  public static final String TEMPO_CHANGE_SOUND_SETTINGS_FILE 
+    = SETTINGS_DIR + FSEP + "tempoChange.txt";
+    
   private MetronomeConstants() {
   }
   
@@ -47,13 +94,40 @@ public final class MetronomeConstants {
     private Metronome() {
     }
     
+    public final class AudioTasks {
+      
+      public static final byte TEMPO_CHANGE_MARKER = 4;
+      public static final byte ACCENT_MARKER = 3;
+      public static final byte BEAT_MARKER = 2;
+      public static final byte CLICK_MARKER = 1;
+      public static final float DUTY_CYCLE = 0.5F; //of the period
+      public static final String HOST = "localhost";
+      public static final String SM_CURRENT_TEMPO = "currentTempo";
+      public static final String TM_CURRENT_TIME_LEFT = "currentTimeLeft";
+      public static final String GM_CURRENT_SILENT_MEASURES 
+        = "currentSilentMeasures";
+//      public static final String M_JOB_STOPPED = "jobStopped";
+      public static final int SERVER_PORT = 6699;
+      public static final int UNIT_BUFFER_SIZE = 1024; // 1 KiB
+      public static final int CAT_BUFFER_SIZE = UNIT_BUFFER_SIZE * 160;
+      public static final int BOS_BUFFER_SIZE = UNIT_BUFFER_SIZE * 80;
+      public static final int BIS_BUFFER_SIZE = UNIT_BUFFER_SIZE * 160;
+      public static final int WAT_BUFFER_SIZE = UNIT_BUFFER_SIZE * 16;
+      //public static final int SDL_BUFFER_SIZE = UNIT_BUFFER_SIZE * 160;
+      public static final int CAT_STOP_SIGNAL = 9;
+      public static final int CAT_CONTINUE_SIGNAL = 6;
+      
+      private AudioTasks() {
+      }
+      
+    }
   }
   
   public final class ConstantTempoMetronome {
     
-    public static final float MAX_TEMPO = 355.0f;
-    public static final float MIN_TEMPO = 5.0f;
-    public static final float DEFAULT_TEMPO = 70.0f;
+    public static final float MAX_TEMPO = 400.0F;
+    public static final float MIN_TEMPO = 5.0F;
+    public static final float DEFAULT_TEMPO = 70.0F;
 
     private ConstantTempoMetronome() {
     }
@@ -62,12 +136,16 @@ public final class MetronomeConstants {
   
   public final class VariableTempoMetronome {
     
-    public static final float MAX_START_TEMPO = 354.0f;
-    public static final float MIN_START_TEMPO = 50.0f;
-    public static final float DEFAULT_START_TEMPO = 90.0f;
-    public static final float MAX_END_TEMPO = 355.0f;
-    public static final float MIN_END_TEMPO = 51.0f;
-    public static final float DEFAULT_END_TEMPO = 120.0f;
+    public static final float MAX_START_TEMPO 
+      = ConstantTempoMetronome.MAX_TEMPO - 20.0F;
+    public static final float MIN_START_TEMPO 
+      = ConstantTempoMetronome.MIN_TEMPO + 10.0F;
+    public static final float DEFAULT_START_TEMPO = 90.0F;
+    public static final float MAX_END_TEMPO 
+      = ConstantTempoMetronome.MAX_TEMPO - 10.0F;
+    public static final float MIN_END_TEMPO 
+      = ConstantTempoMetronome.MIN_TEMPO + 20.0F;
+    public static final float DEFAULT_END_TEMPO = 120.0F;
 
     private VariableTempoMetronome() {
     }
@@ -77,7 +155,7 @@ public final class MetronomeConstants {
   public final class TimedMetronome {
     
     public static final int MAX_DURATION = 120;
-    public static final int MIN_DURATION = 5;
+    public static final int MIN_DURATION = 2;
     public static final int DEFAULT_DURATION = 10;
 
     private TimedMetronome() {
@@ -112,9 +190,9 @@ public final class MetronomeConstants {
     public static final int MAX_TEMPO_LENGTH = 32;
     public static final int MIN_TEMPO_LENGTH = 2;
     public static final int DEFAULT_TEMPO_LENGTH = 4;
-    public static final float MAX_TEMPO_INCREMENT = 10.0f;
-    public static final float MIN_TEMPO_INCREMENT = 2.0f;
-    public static final float DEFAULT_TEMPO_INCREMENT = 5.0f;
+    public static final float MAX_TEMPO_INCREMENT = 10.0F;
+    public static final float MIN_TEMPO_INCREMENT = 2.0F;
+    public static final float DEFAULT_TEMPO_INCREMENT = 5.0F;
 
     private SpeedMetronome() {
     }
@@ -123,26 +201,13 @@ public final class MetronomeConstants {
   
   public final class SoundRez {
     
-    public static final String SOUNDS_DIRECTORY = "sounds";
-    public static final String DEFAULT_ACCENT_SOUND_FILE = SOUNDS_DIRECTORY + 
-                                                           "/" + "accent.wav";
-    public static final String DEFAULT_BEAT_SOUND_FILE = SOUNDS_DIRECTORY + 
-                                                           "/" + "beat.wav";
-    public static final String DEFAULT_CLICK_SOUND_FILE = SOUNDS_DIRECTORY + 
-                                                           "/" + "click.wav";
-    public static final String DEFAULT_TEMPO_CHANGE_SOUND_FILE = 
-            SOUNDS_DIRECTORY + "/" + "tempoChange.wav";
-    public static final float SAMPLE_RATE = 44100.0f; //Hz
+    public static final float SAMPLE_RATE = 44100.0F; //Hz
     public static final float FRAME_RATE = SAMPLE_RATE; //Hz
     public static final int SAMPLE_SIZE = 16; //bits
     public static final int FRAME_SIZE = 4; //bytes
     public static final int NUM_CHANNELS = 2;
-    public static final float BIT_RATE = 1411.2f; //bits per second
-    public static final float DURATION = 0.182f; //seconds
+    public static final float DURATION = 0.250F; //seconds
     public static final boolean BIG_ENDIAN = false;
-//    public static final AudioFormat.Encoding ENCODING = AudioFormat
-//            .Encoding.PCM_SIGNED;
-//    public static final AudioFileFormat.Type TYPE = AudioFileFormat.Type.WAVE;
 
     private SoundRez() {
     }
@@ -152,6 +217,7 @@ public final class MetronomeConstants {
   public final class MetronomeSettingsKeys {
     
     public static final String TEMPO = "tempo";
+    public static final String SUB_DIVISION = "subDivision";
     public static final String MEASURE = "measure";
     public static final String START_TEMPO = "startTempo";
     public static final String END_TEMPO = "endTempo";
@@ -168,81 +234,6 @@ public final class MetronomeConstants {
     public static final String TEMPO_CHANGE = "tempoChange";
 
     private MetronomeSettingsKeys() {
-    }
-    
-  }
-  
-  public final class Session {
-    
-    public static final String SETTINGS_DIRECTORY = "settings";
-    public static final String METRONOME_TYPE_SETTINGS_FILE = 
-            SETTINGS_DIRECTORY + "/" + "metronomeType.txt";
-
-    private Session() {
-    }
-    
-  }
-  
-  public final class GapMetronomeSettings {
-    
-    public static final String GAP_METRONOME_SETTINGS_FILE = 
-            Session.SETTINGS_DIRECTORY + "/" + "gapMetronome.txt";
-    public static final String GAP_METRONOME_PRESETS_SETTINGS_FILE =
-            Session.SETTINGS_DIRECTORY + "/" + "gapMetronomePresets.txt";
-
-    private GapMetronomeSettings() {
-    }
-    
-  }
-  
-  public final class TimedMetronomeSettings {
-    
-    public static final String TIMED_METRONOME_SETTINGS_FILE = 
-            Session.SETTINGS_DIRECTORY + "/" + "timedMetronome.txt";
-    public static final String TIMED_METRONOME_PRESETS_SETTINGS_FILE =
-            Session.SETTINGS_DIRECTORY + "/" + "timedMetronomePresets.txt";
-
-    private TimedMetronomeSettings() {
-    }
-    
-  }
-  
-  public final class SpeedMetronomeSettings {
-    
-    public static final String SPEED_METRONOME_SETTINGS_FILE = 
-            Session.SETTINGS_DIRECTORY + "/" + "speedMetronome.txt";
-    public static final String SPEED_METRONOME_PRESETS_SETTINGS_FILE =
-            Session.SETTINGS_DIRECTORY + "/" + "speedMetronomePresets.txt";
-
-    private SpeedMetronomeSettings() {
-    }
-    
-  }
-  
-  public final class RegularMetronomeSettings {
-    
-    public static final String REGULAR_METRONOME_SETTINGS_FILE = 
-            Session.SETTINGS_DIRECTORY + "/" + "regularMetronome.txt";
-    public static final String REGULAR_METRONOME_PRESETS_SETTINGS_FILE =
-            Session.SETTINGS_DIRECTORY + "/" + "regularMetronomePresets.txt";
-
-    private RegularMetronomeSettings() {
-    }
-    
-  }
-  
-  public final class SoundSettings {
-    
-    public static final String ACCENT_SOUND_SETTINGS_FILE = 
-            Session.SETTINGS_DIRECTORY + "/" + "accent.txt";
-    public static final String BEAT_SOUND_SETTINGS_FILE = 
-            Session.SETTINGS_DIRECTORY + "/" + "beat.txt";
-    public static final String CLICK_SOUND_SETTINGS_FILE = 
-            Session.SETTINGS_DIRECTORY + "/" + "click.txt";
-    public static final String TEMPO_CHANGE_SOUND_SETTINGS_FILE = 
-            Session.SETTINGS_DIRECTORY + "/" + "tempoChange.txt";
-
-    private SoundSettings() {
     }
     
   }

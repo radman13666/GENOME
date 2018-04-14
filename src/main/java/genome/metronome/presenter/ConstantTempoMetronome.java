@@ -29,6 +29,7 @@ public abstract class ConstantTempoMetronome extends Metronome {
   protected float tempo;
 
   protected ConstantTempoMetronome() {
+    super();
   }
 
   public ConstantTempoMetronome(float tempo, int measure, int subDivision) {
@@ -41,11 +42,10 @@ public abstract class ConstantTempoMetronome extends Metronome {
   }
 
   public final void setTempo(float tempo) {
-    if (tempo >= MetronomeConstants.ConstantTempoMetronome.MIN_TEMPO 
-        & tempo <= MetronomeConstants.ConstantTempoMetronome.MAX_TEMPO)
+    if (tempo >= MetronomeConstants.ConstantTempoMetronome.MIN_TEMPO &&
+        tempo <= MetronomeConstants.ConstantTempoMetronome.MAX_TEMPO)
       this.tempo = tempo;
     else this.tempo = MetronomeConstants.ConstantTempoMetronome.DEFAULT_TEMPO;
   }
   
-  protected abstract byte[] createSilence(float tempo);
 }

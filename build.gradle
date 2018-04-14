@@ -1,4 +1,6 @@
-apply plugin: 'java'
+//apply plugin: 'java'
+apply plugin: 'application'
+mainClassName = "genome.metronome.view.GenomeCLI"
 
 sourceCompatibility = '1.8'
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
